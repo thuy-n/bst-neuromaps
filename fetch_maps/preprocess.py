@@ -1,6 +1,7 @@
 import nibabel as nib
 import numpy as np
 import json
+import shutil
 from neuromaps.datasets import fetch_annotation, fetch_atlas
 from neuromaps import transforms, images
 
@@ -31,6 +32,12 @@ for neuro_tx, neuro_tx_subtypes in neuro_tx_maps.items():
             
             # Not transforming these specific maps because neuromaps warns that they are best used in the provided fsaverage space 
             if source == 'norgaard2021' or (source == 'beliveau2017' and desc == 'cimbi36'):
+                
+                # Make a copy of the surface files and set the name in the same format as the other ones
+                if space == 'fsaverage':
+                    for gii, hemi in zip(original_map, ['l', 'r']):
+                        output = f"maps/transformed_fsav164k/source-{source}_desc-{desc}_space-fsaverage_den-164k_{hemi}h.shape.gii"
+                        shutil.copyfile(gii, output)
                 continue
 
             # Generate surface images in a format supported by Brainstorm
