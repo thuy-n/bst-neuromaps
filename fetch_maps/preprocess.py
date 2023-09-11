@@ -36,7 +36,7 @@ for neuro_tx, neuro_tx_subtypes in neuro_tx_maps.items():
                 # Make a copy of the surface files and set the name in the same format as the other ones
                 if space == 'fsaverage':
                     for gii, hemi in zip(original_map, ['l', 'r']):
-                        output = f"maps/transformed_fsav164k/source-{source}_desc-{desc}_space-fsaverage_den-164k_{hemi}h.shape.gii"
+                        output = f"../maps/transformed_fsav164k/source-{source}_desc-{desc}_space-fsaverage_den-164k_{hemi}h.shape.gii"
                         shutil.copyfile(gii, output)
                 continue
 
