@@ -1,30 +1,32 @@
-import neuromaps
 import nibabel as nib
 import numpy as np
 import json
 from neuromaps.datasets import fetch_annotation, fetch_atlas
 from neuromaps import transforms, images
 
+# Directories
+data_dir = r'../tmp'
+maps_dir = r'../maps'
 
-# Load maps from JSON file
-with open('categorized.json') as selected_maps:
-    data = json.load(selected_maps)
-
-data_dir = '/thuy-n/neuromaps/tree/main/maps' 
-maps = data["maps"]
-
+# FsAveage atlases (164k vertices per hemisphere)
 atlases_fsaverage = fetch_atlas("fsaverage", "164k")
 
+# Load info for neuromaps for neurotransmitters from JSON file
+with open(r'../categorized.json') as selected_maps:
+    data = json.load(selected_maps)
+neuro_tx_maps = data["maps"]
+# NeuroTX > NeuroTXSubtypes > TracerMaps
 
 # Process each neurotransmitter
-for neurotransmitter, subtypes in maps.items():
-    for subtype, maps in subtypes.items():
-        for map_info in maps:
+for neuro_tx, neuro_tx_subtypes in neuro_tx_maps.items():
+    for neuro_tx_subtype, tracer_maps in neuro_tx_subtypes.items():
+        for map_info in tracer_maps:
             source = map_info["source"]
-            desc = map_info["desc"]
-            space = map_info["space"]
-            den = map_info["den"]
+            desc   = map_info["desc"]
+            space  = map_info["space"]
+            den    = map_info["den"]
 
+            # Fetch original map
             original_map = fetch_annotation(source=source, desc=desc, space=space, den=den, data_dir=data_dir)
             
             # Not transforming these specific maps because neuromaps warns that they are best used in the provided fsaverage space 
@@ -43,5 +45,6 @@ for neurotransmitter, subtypes in maps.items():
                 surface_images.append(images.construct_shape_gii(receptor_hemi_data))
 
             for gii, hemi in zip(surface_images, ['l', 'r']):
-                output_filename = f"maps/transformed_fsav164k/source-{source}_desc-{desc}_space-fsaverage_den-164k_{hemi}h.shape.gii"
+                output_filename = f"../maps/transformed_fsav164k/source-{source}_desc-{desc}_space-fsaverage_den-164k_{hemi}h.shape.gii"
                 nib.save(gii, output_filename)
+
