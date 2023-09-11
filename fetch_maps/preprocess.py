@@ -22,9 +22,9 @@ for neuro_tx, neuro_tx_subtypes in neuro_tx_maps.items():
     for neuro_tx_subtype, tracer_maps in neuro_tx_subtypes.items():
         for map_info in tracer_maps:
             source = map_info["source"]
-            desc   = map_info["desc"]
+            desc   = map_info["description"]
             space  = map_info["space"]
-            den    = map_info["den"]
+            den    = map_info["density"]
 
             # Fetch original map
             original_map = fetch_annotation(source=source, desc=desc, space=space, den=den, data_dir=data_dir)
