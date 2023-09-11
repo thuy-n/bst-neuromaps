@@ -1,0 +1,226 @@
+{
+  "maps": {
+    "Serotonin": {
+      "5-HT1a": [
+        {
+          "source": "savli2012",
+          "desc": "way100635",
+          "space": "MNI152",
+          "den": "3mm"
+        }
+      ],
+      "5-HT1b": [
+        {
+          "source": "gallezot2010",
+          "desc": "p943",
+          "space": "MNI152",
+          "den": "1mm"
+        },
+        {
+          "source": "savli2012",
+          "desc": "p943",
+          "space": "MNI152",
+          "den": "3mm"
+        }
+      ],
+      "5-HT2a": [
+        {
+          "source": "beliveau2017",
+          "desc": "cimbi36",
+          "space": "MNI152",
+          "den": "1mm"
+        },
+        {
+          "source": "beliveau2017",
+          "desc": "cimbi36",
+          "space": "fsaverage",
+          "den": "164k"
+        }
+      ],
+      "5-HT4": [
+        {
+          "source": "beliveau2017",
+          "desc": "sb207145",
+          "space": "MNI152",
+          "den": "1mm"
+        }
+      ],
+      "5-HT6": [
+        {
+          "source": "radnakrishnan2018",
+          "desc": "gsk215083",
+          "space": "MNI152",
+          "den": "1mm"
+        }
+      ],
+      "5-HTT": [
+        {
+          "source": "beliveau2017",
+          "desc": "dasb",
+          "space": "MNI152",
+          "den": "1mm"
+        },
+        {
+          "source": "savli2012",
+          "desc": "dasb",
+          "space": "MNI152",
+          "den": "3mm"
+        }
+      ]
+    },
+    "Dopamine": {
+      "D1": [
+        {
+          "source": "kaller2017",
+          "desc": "sch23390",
+          "space": "MNI152",
+          "den": "3mm"
+        }
+      ],
+      "D2": [
+        {
+          "source": "smith2017",
+          "desc": "flb457",
+          "space": "MNI152",
+          "den": "1mm"
+        },
+        {
+          "source": "sandiego2015",
+          "desc": "flb457",
+          "space": "MNI152",
+          "den": "1mm"
+        }
+      ],
+      "DAT": [
+        {
+          "source": "dukart2018",
+          "desc": "fpcit",
+          "space": "MNI152",
+          "den": "3mm"
+        }
+      ]
+    },
+    "Norepinephrine": {
+      "NET": [
+        {
+          "source": "ding2010",
+          "desc": "mrb",
+          "space": "MNI152",
+          "den": "1mm"
+        }
+      ]
+    },
+    "Histamine": {
+      "H3": [
+        {
+          "source": "gallezot2017",
+          "desc": "gsk189254",
+          "space": "MNI152",
+          "den": "1mm"
+        }
+      ]
+    },
+    "Acetylcholine": {
+      "a4b2": [
+        {
+          "source": "hillmer2016",
+          "desc": "flubatine",
+          "space": "MNI152",
+          "den": "1mm"
+        }
+      ],
+      "M1": [
+        {
+          "source": "naganawa2020",
+          "desc": "lsn3172176",
+          "space": "MNI152",
+          "den": "1mm"
+        }
+      ],
+      "VaCht": [
+        {
+          "source": "aghourian2017",
+          "desc": "feobv",
+          "space": "MNI152",
+          "den": "1mm"
+        },
+        {
+          "source": "bedard2019",
+          "desc": "feobv",
+          "space": "MNI152",
+          "den": "1mm"
+        },
+        {
+          "source": "tuominen",
+          "desc": "feobv",
+          "space": "MNI152",
+          "den": "2mm"
+        }
+      ]
+    },
+    "Cannabinoid": {
+      "CB1": [
+        {
+          "source": "normandin2015",
+          "desc": "omar",
+          "space": "MNI152",
+          "den": "1mm"
+        }
+      ]
+    },
+    "Opioid": {
+      "MOR": [
+        {
+          "source": "kantonen2020",
+          "desc": "carfentanil",
+          "space": "MNI152",
+          "den": "3mm"
+        }
+      ]
+    },
+    "Glutamate": {
+      "mGluR5": [
+        {
+          "source": "dubois2015",
+          "desc": "abp688",
+          "space": "MNI152",
+          "den": "1mm"
+        },
+        {
+          "source": "rosaneto",
+          "desc": "abp688",
+          "space": "MNI152",
+          "den": "1mm"
+        },
+        {
+          "source": "smart2019",
+          "desc": "abp688",
+          "space": "MNI152",
+          "den": "1mm"
+        }
+      ]
+    },
+    "GABA": {
+      "GABAa/bz": [
+        {
+          "source": "dukart2018",
+          "desc": "flumazenil",
+          "space": "MNI152",
+          "den": "3mm"
+        },
+        {
+          "source": "norgaard2021",
+          "desc": "flumazenil",
+          "space": "MNI152",
+          "den": "1mm"
+        },
+        {
+          "source": "norgaard2021",
+          "desc": "flumazenil",
+          "space": "fsaverage",
+          "den": "163k"
+        }
+      ]
+    }
+  }
+}
