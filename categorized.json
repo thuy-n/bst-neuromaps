@@ -4,67 +4,67 @@
       "5-HT1a": [
         {
           "source": "savli2012",
-          "desc": "way100635",
+          "description": "way100635",
           "space": "MNI152",
-          "den": "3mm"
+          "density": "3mm"
         }
       ],
       "5-HT1b": [
         {
           "source": "gallezot2010",
-          "desc": "p943",
+          "descriptionription": "p943",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         },
         {
           "source": "savli2012",
-          "desc": "p943",
+          "description": "p943",
           "space": "MNI152",
-          "den": "3mm"
+          "density": "3mm"
         }
       ],
       "5-HT2a": [
         {
           "source": "beliveau2017",
-          "desc": "cimbi36",
+          "description": "cimbi36",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         },
         {
           "source": "beliveau2017",
-          "desc": "cimbi36",
+          "description": "cimbi36",
           "space": "fsaverage",
-          "den": "164k"
+          "density": "164k"
         }
       ],
       "5-HT4": [
         {
           "source": "beliveau2017",
-          "desc": "sb207145",
+          "description": "sb207145",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         }
       ],
       "5-HT6": [
         {
           "source": "radnakrishnan2018",
-          "desc": "gsk215083",
+          "description": "gsk215083",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         }
       ],
       "5-HTT": [
         {
           "source": "beliveau2017",
-          "desc": "dasb",
+          "description": "dasb",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         },
         {
           "source": "savli2012",
-          "desc": "dasb",
+          "description": "dasb",
           "space": "MNI152",
-          "den": "3mm"
+          "density": "3mm"
         }
       ]
     },
@@ -72,31 +72,31 @@
       "D1": [
         {
           "source": "kaller2017",
-          "desc": "sch23390",
+          "description": "sch23390",
           "space": "MNI152",
-          "den": "3mm"
+          "density": "3mm"
         }
       ],
       "D2": [
         {
           "source": "smith2017",
-          "desc": "flb457",
+          "description": "flb457",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         },
         {
           "source": "sandiego2015",
-          "desc": "flb457",
+          "description": "flb457",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         }
       ],
       "DAT": [
         {
           "source": "dukart2018",
-          "desc": "fpcit",
+          "description": "fpcit",
           "space": "MNI152",
-          "den": "3mm"
+          "density": "3mm"
         }
       ]
     },
@@ -104,9 +104,9 @@
       "NET": [
         {
           "source": "ding2010",
-          "desc": "mrb",
+          "description": "mrb",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         }
       ]
     },
@@ -114,9 +114,9 @@
       "H3": [
         {
           "source": "gallezot2017",
-          "desc": "gsk189254",
+          "description": "gsk189254",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         }
       ]
     },
@@ -124,37 +124,37 @@
       "a4b2": [
         {
           "source": "hillmer2016",
-          "desc": "flubatine",
+          "description": "flubatine",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         }
       ],
       "M1": [
         {
           "source": "naganawa2020",
-          "desc": "lsn3172176",
+          "description": "lsn3172176",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         }
       ],
       "VaCht": [
         {
           "source": "aghourian2017",
-          "desc": "feobv",
+          "description": "feobv",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         },
         {
           "source": "bedard2019",
-          "desc": "feobv",
+          "description": "feobv",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         },
         {
           "source": "tuominen",
-          "desc": "feobv",
+          "description": "feobv",
           "space": "MNI152",
-          "den": "2mm"
+          "density": "2mm"
         }
       ]
     },
@@ -162,9 +162,9 @@
       "CB1": [
         {
           "source": "normandin2015",
-          "desc": "omar",
+          "description": "omar",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         }
       ]
     },
@@ -172,9 +172,9 @@
       "MOR": [
         {
           "source": "kantonen2020",
-          "desc": "carfentanil",
+          "description": "carfentanil",
           "space": "MNI152",
-          "den": "3mm"
+          "density": "3mm"
         }
       ]
     },
@@ -182,21 +182,21 @@
       "mGluR5": [
         {
           "source": "dubois2015",
-          "desc": "abp688",
+          "description": "abp688",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         },
         {
           "source": "rosaneto",
-          "desc": "abp688",
+          "description": "abp688",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         },
         {
           "source": "smart2019",
-          "desc": "abp688",
+          "description": "abp688",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         }
       ]
     },
@@ -204,21 +204,21 @@
       "GABAa/bz": [
         {
           "source": "dukart2018",
-          "desc": "flumazenil",
+          "description": "flumazenil",
           "space": "MNI152",
-          "den": "3mm"
+          "density": "3mm"
         },
         {
           "source": "norgaard2021",
-          "desc": "flumazenil",
+          "description": "flumazenil",
           "space": "MNI152",
-          "den": "1mm"
+          "density": "1mm"
         },
         {
           "source": "norgaard2021",
-          "desc": "flumazenil",
+          "description": "flumazenil",
           "space": "fsaverage",
-          "den": "163k"
+          "density": "164k"
         }
       ]
     }
