@@ -6,6 +6,7 @@ Maps to be downloaded are specified in the categorized.json file
 
 Created on 2023
 """
+
 import sys
 import os
 import nibabel as nib
@@ -39,22 +40,24 @@ for map_type in ['surface', 'volume']:
 # Surface maps will be in the FsAveage space (164k vertices per hemisphere)
 atlases_fsaverage = fetch_atlas("fsaverage", "164k")
 
-# Load neurotransmitters info for neuromaps from JSON file
-# NeuroTX > NeuroTXSubtypes > TracerMaps
+# Load info for brain maps (annotations) from JSON file
+# BrainMap > BrainMap Subtype > Description for BrainMap Subtype
 with open(r'../categorized.json') as selected_maps:
     data = json.load(selected_maps)
-neuro_tx_maps = data["maps"]
+brain_maps = data["maps"]
 
-# Process each neurotransmitter
-for neuro_tx, neuro_tx_subtypes in neuro_tx_maps.items():
-    # Make forlder of neuro_tx
-    os.mkdir(os.path.join(maps_dir, 'surface', f'{neuro_tx}'))
-    for neuro_tx_subtype, tracer_maps in neuro_tx_subtypes.items():
-        for map_info in tracer_maps:
-            source = map_info["source"]
-            desc   = map_info["description"]
-            space  = map_info["space"]
-            den    = map_info["density"]
+# Process each brain map
+for brain_map, brain_map_subtypes in brain_maps.items():
+    # Make folder of brain map
+    os.mkdir(os.path.join(maps_dir, 'surface', f'{brain_map}'))
+    for brain_map_subtype, brain_map_descs in brain_map_subtypes.items():
+        for brain_map_desc in brain_map_descs:
+            source = brain_map_desc["source"]
+            desc   = brain_map_desc["description"]
+            space  = brain_map_desc["space"]
+            den    = brain_map_desc["density"]
+            N      = brain_map_desc["N"]
+            age    = round(brain_map_desc["Age"])
             # Fetch original map
             original_map = fetch_annotation(source=source, desc=desc, space=space, den=den, data_dir=tmp_dir)
             # Not transforming these specific maps because neuromaps warns that they are best used in the provided fsaverage space
@@ -63,7 +66,7 @@ for neuro_tx, neuro_tx_subtypes in neuro_tx_maps.items():
                 # Make a copy of the surface files and set the name in the same format as the other ones
                 if space == 'fsaverage':
                     for gii, hemi in zip(original_map, ['l', 'r']):
-                        output = os.path.join(maps_dir, f"./surface/{neuro_tx}/source-{source}_desc-{desc}_space-fsaverage_den-164k_{hemi}h.shape.gii")
+                        output = os.path.join(maps_dir, f"./surface/{brain_map}/source-{source}_desc-{desc}_N-{N}_Age-{age}_space-fsaverage_den-164k_{hemi}h.shape.gii")
                         shutil.copyfile(gii, output)
                 continue
             # Generate surface images in FsAverage 164k space
@@ -77,9 +80,8 @@ for neuro_tx, neuro_tx_subtypes in neuro_tx_maps.items():
                 surface_images.append(images.construct_shape_gii(receptor_hemi_data))
             # Save maps
             for gii, hemi in zip(surface_images, ['l', 'r']):
-                output_filename = os.path.join(maps_dir, f'./surface/{neuro_tx}/source-{source}_desc-{desc}_space-fsaverage_den-164k_{hemi}h.shape.gii')
+                output_filename = os.path.join(maps_dir, f"./surface/{brain_map}/source-{source}_desc-{desc}_N-{N}_Age-{age}_space-fsaverage_den-164k_{hemi}h.shape.gii")
                 nib.save(gii, output_filename)
 # Delete tmp folder
 shutil.rmtree(tmp_dir)
-
 

@@ -6,7 +6,9 @@
           "source": "savli2012",
           "description": "way100635",
           "space": "MNI152",
-          "density": "3mm"
+          "density": "3mm",
+          "N": 35,
+          "Age": 36.3
         }
       ],
       "5-HT1b": [
@@ -14,13 +16,17 @@
           "source": "gallezot2010",
           "description": "p943",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 23,
+          "Age": 28.7
         },
         {
           "source": "savli2012",
           "description": "p943",
           "space": "MNI152",
-          "density": "3mm"
+          "density": "3mm",
+          "N": 23,
+          "Age": 28.7
         }
       ],
       "5-HT2a": [
@@ -28,13 +34,17 @@
           "source": "beliveau2017",
           "description": "cimbi36",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 29,
+          "Age": 22.6
         },
         {
           "source": "beliveau2017",
           "description": "cimbi36",
           "space": "fsaverage",
-          "density": "164k"
+          "density": "164k",
+          "N": 29,
+          "Age": 22.6
         }
       ],
       "5-HT4": [
@@ -42,7 +52,9 @@
           "source": "beliveau2017",
           "description": "sb207145",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 59,
+          "Age": 25.9
         }
       ],
       "5-HT6": [
@@ -50,7 +62,9 @@
           "source": "radnakrishnan2018",
           "description": "gsk215083",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 30,
+          "Age": 36.6
         }
       ],
       "5-HTT": [
@@ -58,13 +72,17 @@
           "source": "beliveau2017",
           "description": "dasb",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 100,
+          "Age": 25.1
         },
         {
           "source": "savli2012",
           "description": "dasb",
           "space": "MNI152",
-          "density": "3mm"
+          "density": "3mm",
+          "N": 18,
+          "Age": 30.5
         }
       ]
     },
@@ -74,7 +92,9 @@
           "source": "kaller2017",
           "description": "sch23390",
           "space": "MNI152",
-          "density": "3mm"
+          "density": "3mm",
+          "N": 13,
+          "Age": 33.0
         }
       ],
       "D2": [
@@ -82,13 +102,17 @@
           "source": "smith2017",
           "description": "flb457",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 37,
+          "Age": 48.36
         },
         {
           "source": "sandiego2015",
           "description": "flb457",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 55,
+          "Age": 32.45
         }
       ],
       "DAT": [
@@ -96,7 +120,9 @@
           "source": "dukart2018",
           "description": "fpcit",
           "space": "MNI152",
-          "density": "3mm"
+          "density": "3mm",
+          "N": 174,
+          "Age": 61.0
         }
       ]
     },
@@ -106,7 +132,9 @@
           "source": "ding2010",
           "description": "mrb",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 77,
+          "Age": 33.4
         }
       ]
     },
@@ -116,7 +144,9 @@
           "source": "gallezot2017",
           "description": "gsk189254",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 8,
+          "Age": 31.69
         }
       ]
     },
@@ -126,7 +156,9 @@
           "source": "hillmer2016",
           "description": "flubatine",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 30,
+          "Age": 33.50
         }
       ],
       "M1": [
@@ -134,7 +166,9 @@
           "source": "naganawa2020",
           "description": "lsn3172176",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 24,
+          "Age": 40.45
         }
       ],
       "VaCht": [
@@ -142,19 +176,25 @@
           "source": "aghourian2017",
           "description": "feobv",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 18,
+          "Age": 66.8
         },
         {
           "source": "bedard2019",
           "description": "feobv",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 5,
+          "Age": 68.3
         },
         {
           "source": "tuominen",
           "description": "feobv",
           "space": "MNI152",
-          "density": "2mm"
+          "density": "2mm",
+          "N": 4,
+          "Age": 37
         }
       ]
     },
@@ -164,7 +204,9 @@
           "source": "normandin2015",
           "description": "omar",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 77,
+          "Age": 30.01
         }
       ]
     },
@@ -174,7 +216,9 @@
           "source": "kantonen2020",
           "description": "carfentanil",
           "space": "MNI152",
-          "density": "3mm"
+          "density": "3mm",
+          "N": 204,
+          "Age": 32.3
         }
       ]
     },
@@ -184,19 +228,25 @@
           "source": "dubois2015",
           "description": "abp688",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 28,
+          "Age": 33.1
         },
         {
           "source": "rosaneto",
           "description": "abp688",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 22,
+          "Age": 67.9
         },
         {
           "source": "smart2019",
           "description": "abp688",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 73,
+          "Age": 19.9
         }
       ]
     },
@@ -206,19 +256,25 @@
           "source": "dukart2018",
           "description": "flumazenil",
           "space": "MNI152",
-          "density": "3mm"
+          "density": "3mm",
+          "N": 6,
+          "Age": 43
         },
         {
           "source": "norgaard2021",
           "description": "flumazenil",
           "space": "MNI152",
-          "density": "1mm"
+          "density": "1mm",
+          "N": 16,
+          "Age": 26.6
         },
         {
           "source": "norgaard2021",
           "description": "flumazenil",
           "space": "fsaverage",
-          "density": "164k"
+          "density": "164k",
+          "N": 16,
+          "Age": 26.6
         }
       ]
     }
