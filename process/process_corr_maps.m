@@ -71,7 +71,7 @@ function OutputFile = Run(sProcess, sInput) %#ok<DEFNU>
         %return with error
     end
     % Check that there is only time point
-    if length(sResultsMat.Time) > 2 || ~isequal(sResultsMat.Time(1), sResultsMat.Time(2))
+    if length(sResultsMat.Time) > 2
         disp('Source map MUST be only one point');
         %return with error
     end
@@ -87,20 +87,35 @@ function OutputFile = Run(sProcess, sInput) %#ok<DEFNU>
     sResultsProjMat = in_bst_results(sResultsProjFileName{1}, 1);
 
     % Perform correlation
-    for iBrainMap = 1 : length(MapFiles)
+    corrVals = zeros(length(MapFiles), 1);
+    for iMap = 1 : length(MapFiles)
         % Load map
-        sMapMat = in_bst_results(MapFiles{iBrainMap}, 1);
-        x = bst_corrn(transpose(sMapMat.ImageGridAmp(:,1)), transpose(sResultsProjMat.ImageGridAmp(:,1)));
-        fprintf('%s : %f\n', brainmaps{iBrainMap}, x);
+        sMapMat = in_bst_results(MapFiles{iMap}, 1);
+        corrVals(iMap) = bst_corrn(transpose(sMapMat.ImageGridAmp(:,1)), transpose(sResultsProjMat.ImageGridAmp(:,1)));
+        fprintf('%s : %f\n', brainmaps{iMap}, corrVals(iMap));
     end
 
     % Delete projected
     db_delete_studies(iStudyProj);
     % Create matrix file
+    sMatrixMat = db_template('matrixmat');
+    sMatrixMat.Comment = 'Brain map corr';
+    sMatrixMat.Time = [];
+    sMatrixMat.Value = corrVals;         % size [nMaps,1]
+    sMatrixMat.Description = brainmaps'; % size [nMaps,1]
+    % Add history entry
+    sMatrixMat = bst_history('add', sMatrixMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInput(1).FileName));
 
+    % === SAVE FILE ===
+    % Output filename
+    sStudy = bst_get('Study', sInput(1).iStudy);
+    OutputFile{1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'matrix_neuromaps');
+    % Save file
+    bst_save(OutputFile{1}, sMatrixMat, 'v6');
+    % Register in database
+    db_add_data(sInput(1).iStudy, OutputFile{1}, sMatrixMat);
     % Update whole tree
     panel_protocols('UpdateTree');
-    OutputFile = {sInput.FileName};
 end
 
 
