@@ -1,0 +1,46 @@
+# Workflow name
+name: Generate and publish Neuromaps plugin for Brainstorm
+# Name for each run
+run-name: "🛠️ : Update brain maps in bst-neuromaps repo"
+# Run on Push to 'main' or on request (in GitHub website)
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  # Job name
+  Fetch-Pre-process-Push:
+    defaults:
+      run:
+        shell: bash -l {0}      # This is needed to use setup-miniconda
+    runs-on: ubuntu-latest      # GitHub-hosted runner
+    steps:
+      - name: Checkout 'bst-neuromaps'
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.TOKEN_RC }}  # TOKEN_RC is a PAT in secrets in bst-neuromaps
+          path: bst-neuromaps
+      - name: Create conda environment
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: github-runner
+          environment-file: ./bst-neuromaps/conda_env_bst_nmaps.yaml
+          auto-activate-base: false
+      - name: Fetch and pre-process brain maps
+        run: |
+             cd $GITHUB_WORKSPACE/bst-neuromaps/fetch_maps
+             python preprocess.py
+      - name: List brain maps
+        run: |
+             cd $GITHUB_WORKSPACE/bst-neuromaps/maps
+             find . -name "*.gii"
+      - name: Push to `bst-neuromaps` repo
+        run: |
+             cd $GITHUB_WORKSPACE/bst-neuromaps
+             git config user.name rcassani
+             git config user.email raymundo.cassani@gmail.com
+             git add --all
+             git commit -m "Update brain maps in bst-neuromaps repo"
+             git push
