@@ -130,8 +130,8 @@ function [MapFiles, MapSurfaceFile, iSubject] = PrepareNeuromap(mapComments)
     for iMap = 1 : length(mapComments)
         mapComments{iMap} = strtrim(mapComments{iMap});
         [mapCat, mapFileNameL, mapFileNameR] = mapComment2mapFileName(mapComments{iMap});
-        mapFilePathL = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'neuromaps', 'maps', 'surface', mapCat, mapFileNameL);
-        mapFilePathR = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'neuromaps', 'maps', 'surface', mapCat, mapFileNameR);
+        mapFilePathL = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface', mapCat, mapFileNameL);
+        mapFilePathR = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface', mapCat, mapFileNameR);
         if ~exist(mapFilePathL, 'file')
             fprintf('Requested brain map "%s" does not exist', mapFilePathL);
             %return with error
@@ -177,8 +177,8 @@ function [MapFiles, MapSurfaceFile, iSubject] = PrepareNeuromap(mapComments)
     % Import brain maps in Neuromaps Subject
     for iMap = 1 : length(mapComments)
         [mapCat, mapFileNameL, mapFileNameR] = mapComment2mapFileName(mapComments{iMap});
-        mapFilePathL = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'neuromaps', 'maps', 'surface', mapCat, mapFileNameL);
-        mapFilePathR = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'neuromaps', 'maps', 'surface', mapCat, mapFileNameR);
+        mapFilePathL = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface', mapCat, mapFileNameL);
+        mapFilePathR = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface', mapCat, mapFileNameR);
         % Condition for map Category
         [~, iStudy] = bst_get('StudyWithCondition', bst_fullfile(sSubject.Name, mapCat));
         if isempty(iStudy)
