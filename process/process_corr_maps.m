@@ -78,8 +78,9 @@ function OutputFile = Run(sProcess, sInput) %#ok<DEFNU>
 
     % Get brain maps Comments
     brainmaps = str_split(brainmapsStr, ',');
+    brainmaps = cellfun(@strtrim, brainmaps, 'UniformOutput', false);
     % Get Maps and their Surface
-    [MapFiles, MapSurfaceFile, iSubjectMaps] = PrepareNeuromap(brainmaps);
+    [MapFiles, MapSurfaceFile] = PrepareNeuromap(brainmaps);
 
     % Project sources
     sResultsProjFileName = bst_project_sources({sInput.FileName}, MapSurfaceFile, 0, 0);
@@ -122,13 +123,12 @@ end
 %% ========================================================================
 %  ===== SUPPORT FUNCTIONS ================================================
 %  ========================================================================
-function [MapFiles, MapSurfaceFile, iSubject] = PrepareNeuromap(mapComments)
+function [MapFiles, MapSurfaceFile] = PrepareNeuromap(mapComments)
     MapFiles = {};
     MapSurfaceFile = {};
 
     % Check existence of requested brain files
     for iMap = 1 : length(mapComments)
-        mapComments{iMap} = strtrim(mapComments{iMap});
         [mapCat, mapFileNameL, mapFileNameR] = mapComment2mapFileName(mapComments{iMap});
         mapFilePathL = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface', mapCat, mapFileNameL);
         mapFilePathR = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface', mapCat, mapFileNameR);
