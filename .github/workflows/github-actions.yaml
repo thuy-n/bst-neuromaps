@@ -39,8 +39,8 @@ jobs:
       - name: Push to `bst-neuromaps` repo
         run: |
              cd $GITHUB_WORKSPACE/bst-neuromaps
-             git config user.name rcassani
-             git config user.email raymundo.cassani@gmail.com
+             git config user.name thuy-n
+             git config user.email lethuyduong.n@gmail.com
              git add --all
              git commit -m "Update brain maps in bst-neuromaps repo"
              git push
