@@ -42,5 +42,9 @@ jobs:
              git config user.name thuy-n
              git config user.email lethuyduong.n@gmail.com
              git add --all
-             git commit -m "Update brain maps in bst-neuromaps repo"
-             git push
+             if [ -n "$(git status --porcelain)" ]; then
+                git commit -m "Update brain maps in bst-neuromaps repo"
+                git push
+             else
+                git status
+             fi
