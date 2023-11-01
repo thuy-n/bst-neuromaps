@@ -50,6 +50,7 @@ brain_maps = data["maps"]
 for brain_map, brain_map_subtypes in brain_maps.items():
     # Make folder of brain map
     os.mkdir(os.path.join(maps_dir, 'surface', f'{brain_map}'))
+    os.mkdir(os.path.join(maps_dir, 'volume', f'{brain_map}'))
     for brain_map_subtype, brain_map_descs in brain_map_subtypes.items():
         for brain_map_desc in brain_map_descs:
             source = brain_map_desc["source"]
@@ -60,9 +61,9 @@ for brain_map, brain_map_subtypes in brain_maps.items():
             age    = round(brain_map_desc["Age"])
             # Fetch original map
             original_map = fetch_annotation(source=source, desc=desc, space=space, den=den, data_dir=tmp_dir)
-            if space == 'mni152':
+            if space == 'MNI152':
                 output_filename = os.path.join(maps_dir, f"./volume/{brain_map}/source-{source}_desc-{desc}_N-{N}_Age-{age}_space-mni152_den-{den}.nii.gz")
-                nib.save(original_map, output_filename)
+                shutil.copyfile(original_map, output_filename)
             # Not transforming these specific maps because neuromaps warns that they are best used in the provided fsaverage space
             # https://github.com/netneurolab/neuromaps/blob/abc085a/neuromaps/datasets/annotations.py#L238
             if source == 'norgaard2021' or (source == 'beliveau2017' and desc == 'cimbi36'):
