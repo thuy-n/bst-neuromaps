@@ -21,8 +21,7 @@ The plugin consists of three main parts:
   - MNI152 for volumetric maps- 152 normative MRI scans developed by the Montreal Neurological Institute.
   - FsAverage for surface maps- the default system used by the FreeSurfer software (164k vertices per hemisphere).
 - Flexible framework designed to accommodate future expansions and updates.
-- Repository of precomputed maps sourced from the published literature for both volumetric and surface systems, ensuring accessibility and ease of use. All the information for these maps, including the appropriate citations to use can be found in [this Excel sheet](https://docs.google.com/spreadsheets/d/1R0usElQw1HCYaIGMpgJk-u3HcL6N1nQ1/edit?usp=sharing&ouid=114237437498686296895&rtpof=true&sd=true). 
-
+- Repository of precomputed maps sourced from the published literature for both volumetric and surface systems, ensuring accessibility and ease of use. All the information for these maps, including the appropriate citations to use can be found in [this Excel sheet](https://docs.google.com/spreadsheets/d/1R0usElQw1HCYaIGMpgJk-u3HcL6N1nQ1/edit?usp=sharing&ouid=114237437498686296895&rtpof=true&sd=true). To obtain the surfaces, the original maps offered in MNI152 space were transformed to FsAverage using the registration fusion framework proposed in neuromaps ([Buckner et al., 2011](https://journals.physiology.org/doi/full/10.1152/jn.00339.2011); [Wu et al., 2018](https://onlinelibrary.wiley.com/doi/10.1002/hbm.24213)).
 
 ## Contributing
 We welcome contributions from the community to help improve and expand the functionality of the neuromaps plugin. Feel free to submit pull requests, report issues, or provide suggestions! Your feedback is invaluable in ensuring a user-friendly experience for researchers worldwide. We believe that open science is most impactful when the countless everyone is provided with equal access to the newest and greatest resources in the field.
