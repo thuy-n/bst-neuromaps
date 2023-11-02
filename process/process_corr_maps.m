@@ -28,7 +28,8 @@ end
 %% ===== GET DESCRIPTION =====
 function sProcess = GetDescription() %#ok<DEFNU>
     % Get List
-    brainmapList = GetBrainMapsList();
+    brainmapListSrf = GetBrainMapsList('surface');
+    brainmapListVol = GetBrainMapsList('volume');
     % Description the process
     sProcess.Comment     = 'Spatial correlation';
     sProcess.Category    = 'Custom';
@@ -43,14 +44,23 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.help.Comment = ['This process computes Pearson''s correlation coefficient between <BR>' ...
                                      'a surface source file and a brain map<BR>'];
     sProcess.options.help.Type    = 'label';
-    % === BRAIN MAP List from folders in Plugin
-    sProcess.options.brainmaps.Comment = 'Brain maps from Neuromaps (wiil be a list)';
-    sProcess.options.brainmaps.Type    = 'textarea';
-    sProcess.options.brainmaps.Value   = 'Opioid: carfentanil_kantonen2020_N204_Age32, GABA: flumazenil_norgaard2021_N16_Age27'; % Allow all?
-
-
-    % === METRIC
-    % === CORRECTION
+    % === SOURCE SPACE
+    sProcess.options.sspace.Comment    = {'Surface', 'Volume', '<B>Source space:</B>'; ...
+                                          'surface', 'volume', ''};
+    sProcess.options.sspace.Type       = 'radio_linelabel';
+    sProcess.options.sspace.Value      = 'surface';
+    sProcess.options.sspace.Controller = struct('surface', 'surface', 'volume', 'volume');
+    % === SURFACE BRAIN MAPS
+    sProcess.options.brainmaps_srf.Comment = 'Brain maps from Neuromaps (wiil be a list)';
+    sProcess.options.brainmaps_srf.Type    = 'textarea';
+    sProcess.options.brainmaps_srf.Value   = strjoin(brainmapListSrf, char(10)); % Add checkbox to select all?
+    sProcess.options.brainmaps_srf.Class   = 'surface';
+    % === VOLUME BRAIN MAPS
+    sProcess.options.brainmaps_vol.Comment = 'Brain maps from Neuromaps (wiil be a list)';
+    sProcess.options.brainmaps_vol.Type    = 'textarea';
+    sProcess.options.brainmaps_vol.Value   = strjoin(brainmapListSrf, char(10)); % Add checkbox to select all?
+    sProcess.options.brainmaps_vol.Class   = 'volume';
+    % === METRIC, CORRECTION
 end
 
 
@@ -63,11 +73,17 @@ end
 %% ===== RUN =====
 function OutputFile = Run(sProcess, sInput) %#ok<DEFNU>
     % Get options
-    brainmapsStr = sProcess.options.brainmaps.Value;
-    % Verify that source is surface
+    space = sProcess.options.sspace.Value;
+    if strcmpi(space, 'surface')
+        brainmapsStr = sProcess.options.brainmaps_srf.Value;
+    elseif strcmpi(space, 'volume')
+        brainmapsStr = sProcess.options.brainmaps_vol.Value;
+    end
+
+    % Verify correct source
     sResultsMat = in_bst_results(sInput.FileName, 0, 'HeadModelType', 'Time');
-    if ~strcmpi(sResultsMat.HeadModelType, 'surface')
-        disp('Only surface is supported');
+    if ~strcmpi(sResultsMat.HeadModelType, space)
+        disp('Select the proper source space');
         %return with error
     end
     % Check that there is only time point
@@ -77,8 +93,16 @@ function OutputFile = Run(sProcess, sInput) %#ok<DEFNU>
     end
 
     % Get brain maps Comments
-    brainmaps = str_split(brainmapsStr, ',');
-    brainmaps = cellfun(@strtrim, brainmaps, 'UniformOutput', false);
+    brainmaps = str_split(brainmapsStr, 10);
+    tmps = {};
+    for iMap = 1 : length(brainmaps)
+        tmp = strtrim(brainmaps{iMap});
+        if ~isempty(tmp)
+            tmps{end+1} = tmp;
+        end
+    end
+    brainmaps = tmps;
+
     % Get Maps and their Surface
     [MapFiles, MapSurfaceFile] = PrepareNeuromap(brainmaps);
 
@@ -208,10 +232,17 @@ function [MapFiles, MapSurfaceFile] = PrepareNeuromap(mapComments)
     end
 end
 
-function mapComments = GetBrainMapsList()
+function mapComments = GetBrainMapsList(space)
     % Brain map Comments from brain FileNames in bst_neuromaps Plugin
-    % Find all gii files (only Lh)
-    mapFiles = dir(fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'neuromaps', 'maps', 'surface','**/*lh.shape.gii'));
+    if strcmpi(space, 'surface')
+        % Find all gii files (only Lh)
+        dir_str = {'surface','**/*lh.shape.gii'};
+    elseif strcmpi(space, 'volume')
+        % Find all nii.gz files
+        dir_str = {'volume','**/*.nii.gz'};
+    end
+    % Search files
+    mapFiles = dir(fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', dir_str{:} ));
     mapComments = {};
     for iMap = 1 : length(mapFiles)
         [~, mapFolder] = bst_fileparts(mapFiles(iMap).folder);
@@ -223,7 +254,7 @@ function mapComment = mapFileName2mapComment(mapCat, mapFileName)
     % Go from brain map Category and map FileName (either Lh or Rh) to map Comment
     % e.g. ['Acetylcholine', 'source-aghourian2017_desc-feobv_N-18_Age-67_space-fsaverage_den-164k_lh.shape.gii'] > 'Acetylcholine : feobv_aghourian2017_N18_Age67'
     tokens = regexp(mapFileName, 'source-(.*?)_desc-(.*?)_N-([0-9]*)_Age-([0-9]*)', 'tokens', 'once');
-    mapComment = sprintf('%s : %s_%s_N%s_Age%s', lower(mapCat), tokens{2}, tokens{1}, tokens{3:4});
+    mapComment = sprintf('%s: %s_%s_N%s_Age%s', mapCat, tokens{2}, tokens{1}, tokens{3:4});
 end
 
 function [mapCat, mapFileNameL, mapFileNameR] = mapComment2mapFileName(mapComment)
