@@ -199,9 +199,9 @@ function [MapFiles, MapSurfaceFile] = PrepareNeuromap(mapComments)
             MapFile = import_sources(iStudy, MapSurfaceFile, mapFilePathL, mapFilePathR, 'GII', mapComments{iMap});
             % Get N (number of subjects averaged to obtained brain map)
             mapN = regexp(mapComments{iMap}, 'N([0-9]*)', 'tokens', 'once');
-            mapN = mapN{1};
+            mapN = sscanf(mapN{1}, '%d');
             % Update MapFile
-            sMapMat.nAvg = mapN;
+            sMapMat.Leff = mapN;
             bst_save(MapFile, sMapMat, [], 1);
             MapFiles{iMap} = file_short(MapFile);
         end
