@@ -1,4 +1,4 @@
-function varargout = process_corr_maps( varargin )
+function varargout = process_np_fetch_maps( varargin )
 % PROCESS_CORR_MAPS
 
 % @=============================================================================
@@ -19,7 +19,7 @@ function varargout = process_corr_maps( varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors:  Le Thuy Duong Nguyen, Raymundo Cassani 2023
+% Authors: Le Thuy Duong Nguyen, Raymundo Cassani 2023
 
 eval(macro_method);
 end
@@ -31,15 +31,15 @@ function sProcess = GetDescription() %#ok<DEFNU>
     brainmapListSrf = GetBrainMapsList('surface');
     brainmapListVol = GetBrainMapsList('volume');
     % Description the process
-    sProcess.Comment     = 'Spatial correlation';
+    sProcess.Comment     = 'Fetch brain annotations from Neuromaps';
     sProcess.Category    = 'Custom';
     sProcess.SubGroup    = 'Sources';
     sProcess.Index       = 600;
     % Definition of the input accepted by this process
-    sProcess.InputTypes  = {'results'};
-    sProcess.OutputTypes = {'matrix'};
+    sProcess.InputTypes  = {'import'};
+    sProcess.OutputTypes = {'results'};
     sProcess.nInputs     = 1;
-    sProcess.nMinFiles   = 1;
+    sProcess.nMinFiles   = 0;
     % === DESCRIPTION
     sProcess.options.help.Comment = ['This process computes Pearson''s correlation coefficient between <BR>' ...
                                      'a surface source file and a brain map<BR>'];
@@ -71,25 +71,13 @@ end
 
 
 %% ===== RUN =====
-function OutputFile = Run(sProcess, sInput) %#ok<DEFNU>
+function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
     % Get options
     space = sProcess.options.sspace.Value;
     if strcmpi(space, 'surface')
         brainmapsStr = sProcess.options.brainmaps_srf.Value;
     elseif strcmpi(space, 'volume')
         brainmapsStr = sProcess.options.brainmaps_vol.Value;
-    end
-
-    % Verify correct source
-    sResultsMat = in_bst_results(sInput.FileName, 0, 'HeadModelType', 'Time');
-    if ~strcmpi(sResultsMat.HeadModelType, space)
-        disp('Select the proper source space');
-        %return with error
-    end
-    % Check that there is only time point
-    if length(sResultsMat.Time) > 2
-        disp('Source map MUST be only one point');
-        %return with error
     end
 
     % Get brain maps Comments
@@ -103,42 +91,11 @@ function OutputFile = Run(sProcess, sInput) %#ok<DEFNU>
     end
     brainmaps = tmps;
 
-    % Get Maps and their Surface
-    [MapFiles, MapSurfaceFile] = PrepareNeuromap(brainmaps);
+    % Get brain maps
+    MapFiles = PrepareNeuromap(brainmaps);
 
-    % Project sources
-    sResultsProjFileName = bst_project_sources({sInput.FileName}, MapSurfaceFile, 0, 0);
-    [~, iStudyProj] = bst_get('ResultsFile', sResultsProjFileName{1});
-    sResultsProjMat = in_bst_results(sResultsProjFileName{1}, 1);
-
-    % Perform correlation
-    corrVals = zeros(length(MapFiles), 1);
-    for iMap = 1 : length(MapFiles)
-        % Load map
-        sMapMat = in_bst_results(MapFiles{iMap}, 1);
-        corrVals(iMap) = bst_corrn(transpose(sMapMat.ImageGridAmp(:,1)), transpose(sResultsProjMat.ImageGridAmp(:,1)));
-        fprintf('%s : %f\n', brainmaps{iMap}, corrVals(iMap));
-    end
-
-    % Delete projected
-    db_delete_studies(iStudyProj);
-    % Create matrix file
-    sMatrixMat = db_template('matrixmat');
-    sMatrixMat.Comment = 'Brain map corr';
-    sMatrixMat.Time = [];
-    sMatrixMat.Value = corrVals;         % size [nMaps,1]
-    sMatrixMat.Description = brainmaps'; % size [nMaps,1]
-    % Add history entry
-    sMatrixMat = bst_history('add', sMatrixMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInput(1).FileName));
-
-    % === SAVE FILE ===
-    % Output filename
-    sStudy = bst_get('Study', sInput(1).iStudy);
-    OutputFile{1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'matrix_neuromaps');
-    % Save file
-    bst_save(OutputFile{1}, sMatrixMat, 'v6');
-    % Register in database
-    db_add_data(sInput(1).iStudy, OutputFile{1}, sMatrixMat);
+    % Output filenames
+    OutputFiles = MapFiles;
     % Update whole tree
     panel_protocols('UpdateTree');
 end
