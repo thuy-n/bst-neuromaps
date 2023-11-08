@@ -16,6 +16,9 @@ function generate_bst_plugin_maps()
 % Add path 'bst-tests' with support functions
 % 'bst-neuromaps' and 'brainstorm3' are expected at the same level
 bstNeuromapsDir = bst_fullfile(fileparts(bst_get('BrainstormHomeDir')), 'bst-neuromaps');
+if ~exist(bstNeuromapsDir, 'dir')
+    return
+end
 
 % High definition maps
 % Surface: FsAverage space with 327,684 vertices (~164k vertices per hemisphere)
