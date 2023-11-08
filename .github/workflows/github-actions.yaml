@@ -2,6 +2,11 @@
 name: Generate and publish Neuromaps plugin for Brainstorm
 # Name for each run
 run-name: "🛠️ : Update brain maps in bst-neuromaps repo"
+
+# Parameters
+env:
+  MATLAB_VER: R2021b # Oldest "b" release available for Windows runner
+
 # Run on Push to 'main' or on request (in GitHub website)
 on:
   push:
@@ -10,32 +15,57 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job name
-  Fetch-Pre-process-Push:
+  # Everything happens in one job as it is the same runner
+  Prepare-plugin:
+    name: Prepare bst-neuromaps plugin
     defaults:
       run:
         shell: bash -l {0}      # This is needed to use setup-miniconda
     runs-on: ubuntu-latest      # GitHub-hosted runner
     steps:
+      # Python steps
       - name: Checkout 'bst-neuromaps'
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.TOKEN_RC }}  # TOKEN_RC is a PAT in secrets in bst-neuromaps
-          path: bst-neuromaps
+          path: bst-neuromaps             # $GITHUB_WORKSPACE/bst-neuromaps
       - name: Create conda environment
         uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: github-runner
           environment-file: ./bst-neuromaps/conda_env_bst_nmaps.yaml
           auto-activate-base: false
-      - name: Fetch and pre-process brain maps
+      - name: Fetch and pre-process brain maps (preprocess.py)
         run: |
              cd $GITHUB_WORKSPACE/bst-neuromaps/fetch_maps
              python preprocess.py
-      - name: List brain maps
+      - name: List fetched surface brain maps
         run: |
-             cd $GITHUB_WORKSPACE/bst-neuromaps/maps
+             cd $GITHUB_WORKSPACE/bst-neuromaps/tmp/surface
              find . -name "*.gii"
+      - name: List fetched volume brain maps
+        run: |
+             cd $GITHUB_WORKSPACE/bst-neuromaps/tmp/volume
+             find . -name "*.nii.gz"
+      # Brainstorm steps
+      - name: Set up Matlab
+        uses: matlab-actions/setup-matlab@v1
+        with:
+          release: ${{ env.MATLAB_VER }}
+      - name: Checkout 'brainstorm3' in 'brainstorm3'
+        uses: actions/checkout@v3
+        with:
+          repository: brainstorm-tools/brainstorm3
+          path: brainstorm3  # $GITHUB_WORKSPACE/brainstorm3
+          ref: 'master'
+      - name: Create symbolic link for generate_bst_plugin_maps.m
+        run: ln -s $GITHUB_WORKSPACE/bst-neuromaps/generate_bst_plugin_maps.m $GITHUB_WORKSPACE/brainstorm3/generate_bst_plugin_maps.m
+      - name: Preprocess fetched maps with Brainstorm
+        uses: matlab-actions/run-command@v1
+        with:
+          command: cd("brainstorm3"), brainstorm generate_bst_plugin_maps.m local
+          startup-options: -nodisplay
+      # Push to GitHub
       - name: Push to `bst-neuromaps` repo
         run: |
              cd $GITHUB_WORKSPACE/bst-neuromaps
