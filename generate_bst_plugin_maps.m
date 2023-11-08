@@ -128,8 +128,8 @@ for iMap = 1 : length(ldSurfMapImportFiles)
     if exist(bst_fullfile(ldSurfMapsDir, mapFolder), 'dir') == 0
         mkdir(bst_fullfile(ldSurfMapsDir, mapFolder));
     end
-    % Remove indicator of number of vertices from filename
-    mapFileName = [strrep(mapFileName, '_15002V', ''), mapExt];
+    % Remove string with datetime (_YYMMDD_HHMM) and number of vertices (_nV) from filename
+    mapFileName = regexprep(mapFileName, '_[0-9]{6}_[0-9]{4}_15002V$', mapExt);
     % Copy to bst-neuromaps
     srcMap = file_fullpath(ldSurfMapImportFiles{iMap});
     dstMap = bst_fullfile(ldSurfMapsDir, mapFolder, mapFileName);
