@@ -70,7 +70,7 @@ for brain_map, brain_map_subtypes in brain_maps.items():
                     for gii, hemi in zip(original_map, ['l', 'r']):
                         output = os.path.join(tmp_dir, f"./surface/{brain_map}/source-{source}_desc-{desc}_N-{N}_Age-{age}_space-fsaverage_den-164k_{hemi}h.shape.gii")
                         shutil.copyfile(gii, output)
-                        os.remove(output)
+                        os.remove(gii)
                 continue
             # Generate surface images in FsAverage 164k space
             gii_images = transforms.mni152_to_fsaverage(original_map, '164k')
