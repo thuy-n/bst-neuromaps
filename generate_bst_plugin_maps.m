@@ -124,7 +124,8 @@ for iMap = 1 : nHdSurfMaps
     bst_save(file_fullpath(ldSurfMapImportFiles{iMap}), sMapMat, [], 1);
 end
 
-% Copy low-definition maps (sources)
+% Export low-definition maps (sources)
+% Filenaming follows 'BST' format in the Brainstorm function 'export_result()'
 for iMap = 1 : length(ldSurfMapImportFiles)
     [mapFolder, mapFileName, mapExt] = bst_fileparts(ldSurfMapImportFiles{iMap});
     [~, mapFolder] = bst_fileparts(mapFolder);
@@ -132,7 +133,11 @@ for iMap = 1 : length(ldSurfMapImportFiles)
         mkdir(bst_fullfile(ldSurfMapsDir, mapFolder));
     end
     % Remove string with datetime (_YYMMDD_HHMM) and number of vertices (_nV) from filename
-    mapFileName = regexprep(mapFileName, '_[0-9]{6}_[0-9]{4}_15002V$', mapExt);
+    mapFileName = regexprep(mapFileName, '_[0-9]{6}_[0-9]{4}_15002V$', '');
+    % Remove string with 'results_' from filename
+    mapFileName = regexprep(mapFileName, '$results_', '');
+    % Update extension from '.mat' to '_sources.mat'
+    mapFileName = [mapFileName, '_sources', mapExt];
     % Copy to bst-neuromaps
     srcMap = file_fullpath(ldSurfMapImportFiles{iMap});
     dstMap = bst_fullfile(ldSurfMapsDir, mapFolder, mapFileName);
