@@ -67,7 +67,7 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
         end
     end
     % Verify time definition
-    % FilesB must have the same time axix: TimesB
+    % FilesB must have the same time axis: TimesB
     for iInputB = 1 : length(sInputsB)
         sResultsMat = in_bst_results(sInputs(iInputB).FileName, 0, 'Time');
         if ~isequal(sResultsMat.Time, sResultsB1.Time)
@@ -104,31 +104,32 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     end
 
 
+    % For each FileA compute correlations with all FilesB
     for iInputA = 1 : length(sInputsA)
+        sMatrixMat = db_template('matrixmat');
+        sMatrixMat.Comment = 'Brain map corr';
         % Accumulator for matrices, one matrix per surface file
         for iMapSurfaceFile = 1 : length(MapsSurfaceFiles)
             % Maps with common Surface file
             MapsSurfaceFile = MapsSurfaceFiles{iMapSurfaceFile};
             MapFiles = MapFilesGroups{iMapSurfaceFile};
             % Compute correlations
-            sMatrixMat = CorrelationSurfaceMaps(sInputsA(iInputA).FileName, MapFiles, MapsSurfaceFile);
+            sMatrixTmpMat = CorrelationSurfaceMaps(sInputsA(iInputA).FileName, MapFiles, MapsSurfaceFile);
         end
-        % Concatename matrice s
-
-        % Save
-
-            % Each matrix corresponds to each sInputA
-            sMatrixMat = sMatrixMats(iInputA);
-            % Add history entry
-            sMatrixMat = bst_history('add', sMatrixMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputsA(iInputA).FileName));
-            % === SAVE FILE ===
-            % Output filename
-            sStudy = bst_get('Study', sInputsA(1).iStudy);
-            OutputFiles{end+1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'matrix_neuromaps');
-            % Save file
-            bst_save(OutputFiles{end}, sMatrixMat, 'v6');
-            % Register in database
-            db_add_data(sInputsA(iInputA).iStudy, OutputFiles{end}, sMatrixMat);
+        % Concatename matrices (add results from other maps)
+        sMatrixMat.Time = sMatrixTmpMat.Time;
+        sMatrixMat.Value =  [sMatrixMat.Value; sMatrixTmpMat.Value];                   % size [nMaps,1]
+        sMatrixMat.Description = [sMatrixMat.Description; sMatrixTmpMat.Description];  % size [nMaps,1]
+        % Add history entry
+        sMatrixMat = bst_history('add', sMatrixMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputsA(iInputA).FileName));
+        % === SAVE FILE ===
+        % Output filename
+        sStudy = bst_get('Study', sInputsA(1).iStudy);
+        OutputFiles{end+1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'matrix_neuromaps');
+        % Save file
+        bst_save(OutputFiles{end}, sMatrixMat, 'v6');
+        % Register in database
+        db_add_data(sInputsA(iInputA).iStudy, OutputFiles{end}, sMatrixMat);
     end
     % Update whole tree
     panel_protocols('UpdateTree');
@@ -141,29 +142,28 @@ end
 function [sMatrixMat] = CorrelationSurfaceMaps(OrgFile, MapFiles, MapsSurfaceFile)
     % Check for surface files
     sOrgResultsMat = in_bst_results(OrgFile, 0, 'SurfaceFile');
+    % Project if needed
+    % TODO a better check needs to be done for warped surfaces
     if strcmp(sOrgResultsMat.SurfaceFile, MapsSurfaceFile)
         sResultsProjFileName = '';
-        sResultsProjMat = in_bst_results(OrgFiles, 1);
+        sResultsProjMat = in_bst_results(OrgFile, 1);
     else
-        % Project sources
         sResultsProjFileName = bst_project_sources({OrgFile}, MapsSurfaceFile, 0, 0);
         sResultsProjFileName = sResultsProjFileName{1};
         [~, iStudyProj] = bst_get('ResultsFile', sResultsProjFileName);
         sResultsProjMat = in_bst_results(sResultsProjFileName, 1);
     end
     % Check size of InputA
-    TimesA = 1;
-    % Check size of InputB
-    TimesB = 1;
+    TimesA = sResultsProjMat.Time;
     corrVals = zeros(length(MapFiles), length(TimesA));
     % Perform correlation
-    brainmaps = cell(1, length(MapFiles));
+    mapComments = cell(1, length(MapFiles));
     for iMap = 1 : length(MapFiles)
         % Load map
         sMapMat = in_bst_results(MapFiles{iMap}, 1);
-        brainmaps{iMap} = sMapMat.Comment;
+        mapComments{iMap} = sMapMat.Comment;
         for iTimeA = 1 : length(TimesA)
-            if 0
+            if length(sMapMat.Time) == length(TimesA)
                 iTimeB = iTimeA;
             else
                 iTimeB = 1;
@@ -171,17 +171,16 @@ function [sMatrixMat] = CorrelationSurfaceMaps(OrgFile, MapFiles, MapsSurfaceFil
             corrVals(iMap, iTimeA) = bst_corrn(transpose(sMapMat.ImageGridAmp(:,iTimeA)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
         end
     end
-    % Delete all the files and update study
+    % Delete projected file and update study
     if ~isempty(sResultsProjFileName)
         file_delete(file_fullpath(sResultsProjFileName), 1);
         db_reload_studies(iStudyProj);
-        % Delete study if empty
+        % TODO Delete study if empty
     end
-
     % Create matrix structure
     sMatrixMat = db_template('matrixmat');
     sMatrixMat.Comment = 'Brain map corr';
-    sMatrixMat.Time = [];
-    sMatrixMat.Value = corrVals;         % size [nMaps,1]
-    sMatrixMat.Description = brainmaps'; % size [nMaps,1]
+    sMatrixMat.Time = TimesA;
+    sMatrixMat.Value = corrVals;           % size [nMaps, nTimes]
+    sMatrixMat.Description = mapComments'; % size [nMaps,1]
 end
