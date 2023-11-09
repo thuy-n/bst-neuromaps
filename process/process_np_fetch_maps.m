@@ -92,7 +92,7 @@ function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
     brainmaps = tmps;
 
     % Get brain maps
-    MapFiles = PrepareNeuromap(brainmaps);
+    MapFiles = PrepareNeuromap(space, brainmaps);
 
     % Output filenames
     OutputFiles = MapFiles;
@@ -104,23 +104,29 @@ end
 %% ========================================================================
 %  ===== SUPPORT FUNCTIONS ================================================
 %  ========================================================================
-function [MapFiles, MapSurfaceFile] = PrepareNeuromap(mapComments)
+function [MapFiles, MapSurfaceFile] = PrepareNeuromap(space, mapComments)
     MapFiles = {};
     MapSurfaceFile = {};
 
+    mapInfos = repmat(struct('Comment',  '', ...
+                             'Category', '', ...
+                             'FullPath', ''), 0);
     % Check existence of requested brain files
     for iMap = 1 : length(mapComments)
-        [mapCat, mapFileNameL, mapFileNameR] = mapComment2mapFileName(mapComments{iMap});
-        mapFilePathL = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface', mapCat, mapFileNameL);
-        mapFilePathR = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface', mapCat, mapFileNameR);
-        if ~exist(mapFilePathL, 'file')
-            fprintf('Requested brain map "%s" does not exist', mapFilePathL);
+        % Get category
+        mapCategory = regexp(mapComments{iMap}, '(.*?):', 'tokens', 'once');
+        mapCategory = mapCategory{1};
+        % Go from filename to comment
+        mapFileName = ['results_', space, '_', mapComments{iMap}, '_sources.mat'];
+        mapFileName = regexprep(mapFileName, ': ', '__');
+        mapFullPath = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', space, mapCategory, mapFileName);
+        if ~exist(mapFullPath, 'file')
+            fprintf('Requested brain map "%s" does not exist', mapFullPath);
             %return with error
         end
-        if ~exist(mapFilePathR, 'file')
-            fprintf('Requested brain map "%s" does not exist', mapFilePathR);
-            %return with error
-        end
+        mapInfos(end+1).Comment = mapComments{iMap};
+        mapInfos(end).Category  = mapCategory;
+        mapInfos(end).FullPath  = mapFullPath;
     end
 
     % Get Neuromaps Subject
@@ -147,39 +153,38 @@ function [MapFiles, MapSurfaceFile] = PrepareNeuromap(mapComments)
         disp('Subject is not using FsAverage anatomy');
         %return with error
     end
-    % Cortical surface with 327684 vertices (163842 per hemisphere) MUST be the default one
-    % This is because the maps in the bst-neuromaps are in the Fs 164k space
-    ix = find(~cellfun(@isempty,(regexpi({sSubject.Surface.Comment}, '.*cortex.*327684.*'))));
+    % Cortical surface with 15002 vertices (distributed in Brainstorm) MUST be the default one
+    % This is because the maps in the bst-neuromaps were obtained for this surface
+    % See the code `generate_bst_plugin_maps` of bst-neuromaps
+    ix = find(~cellfun(@isempty,(regexpi({sSubject.Surface.Comment}, '.*cortex_15002V'))));
     if ~isequal(sSubject.iCortex, ix)
         sSubject = db_surface_default(iSubject, 'Cortex', ix, 1);
     end
     MapSurfaceFile = sSubject.Surface(sSubject.iCortex).FileName;
+    % TODO Sanity check by comparing with the cortical surface in the plugin
 
     % Import brain maps in Neuromaps Subject
-    for iMap = 1 : length(mapComments)
-        [mapCat, mapFileNameL, mapFileNameR] = mapComment2mapFileName(mapComments{iMap});
-        mapFilePathL = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface', mapCat, mapFileNameL);
-        mapFilePathR = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface', mapCat, mapFileNameR);
+    for iMap = 1 : length(mapInfos)
         % Condition for map Category
-        [~, iStudy] = bst_get('StudyWithCondition', bst_fullfile(sSubject.Name, mapCat));
+        [~, iStudy] = bst_get('StudyWithCondition', bst_fullfile(sSubject.Name, mapInfos(iMap).Category));
         if isempty(iStudy)
-            iStudy = db_add_condition(sSubject.Name, mapCat);
+            iStudy = db_add_condition(sSubject.Name, mapInfos(iMap).Category);
             if isempty(iStudy)
-                error('Study could not be created : "%s".', mapCat);
+                error('Study could not be created : "%s".', mapInfos(iMap).Category);
                 %return with error
             end
         end
         % Get brain map file
         sStudy = bst_get('Study', iStudy);
-        [~, ix] = intersect({sStudy.Result.Comment}, mapComments{iMap}, 'stable');
+        [~, ix] = intersect({sStudy.Result.Comment}, mapInfos(iMap).Comment, 'stable');
         if ~isempty(ix)
             % Brain map already in database
             MapFiles{iMap} = sStudy.Result(ix).FileName;
         else
             % Import brain map to database
-            MapFile = import_sources(iStudy, MapSurfaceFile, mapFilePathL, mapFilePathR, 'GII', mapComments{iMap});
+            MapFile = import_sources(iStudy, MapSurfaceFile, mapInfos(iMap).FullPath, [], 'BST', mapInfos(iMap).Comment);
             % Get N (number of subjects averaged to obtained brain map)
-            mapN = regexp(mapComments{iMap}, 'N([0-9]*)', 'tokens', 'once');
+            mapN = regexp(mapInfos(iMap).Comment, 'N([0-9]*)', 'tokens', 'once');
             mapN = sscanf(mapN{1}, '%d');
             % Update MapFile
             sMapMat.Leff = mapN;
@@ -191,36 +196,14 @@ end
 
 function mapComments = GetBrainMapsList(space)
     % Brain map Comments from brain FileNames in bst_neuromaps Plugin
-    if strcmpi(space, 'surface')
-        % Find all gii files (only Lh)
-        dir_str = {'surface','**/*lh.shape.gii'};
-    elseif strcmpi(space, 'volume')
-        % Find all nii.gz files
-        dir_str = {'volume','**/*.nii.gz'};
-    end
-    % Search files
-    mapFiles = dir(fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', dir_str{:} ));
+    % Find all Brainstorm source files
+    mapFiles = dir(fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', space,  '**/*_sources.mat'));
     mapComments = {};
     for iMap = 1 : length(mapFiles)
-        [~, mapFolder] = bst_fileparts(mapFiles(iMap).folder);
-        mapComments{end+1} = mapFileName2mapComment(mapFolder ,mapFiles(iMap).name);
+        % Go from filename to comment
+        mapComments{end+1} = regexprep(mapFiles(iMap).name, ['^results_', space, '_'], '');
+        mapComments{end}   = regexprep(mapComments{end}, '_sources.mat$', '');
+        mapComments{end}   = regexprep(mapComments{end}, '__', ': ');
     end
 end
 
-function mapComment = mapFileName2mapComment(mapCat, mapFileName)
-    % Go from brain map Category and map FileName (either Lh or Rh) to map Comment
-    % e.g. ['Acetylcholine', 'source-aghourian2017_desc-feobv_N-18_Age-67_space-fsaverage_den-164k_lh.shape.gii'] > 'Acetylcholine : feobv_aghourian2017_N18_Age67'
-    tokens = regexp(mapFileName, 'source-(.*?)_desc-(.*?)_N-([0-9]*)_Age-([0-9]*)', 'tokens', 'once');
-    mapComment = sprintf('%s: %s_%s_N%s_Age%s', mapCat, tokens{2}, tokens{1}, tokens{3:4});
-end
-
-function [mapCat, mapFileNameL, mapFileNameR] = mapComment2mapFileName(mapComment)
-    % Go from brain map Comment to brain map Category and map FileNames (Lh and Rh)
-    % e.g., 'Acetylcholine : feobv_aghourian2017_N18_Age67' > ['Acetylcholine'
-    %                                                          'source-aghourian2017_desc-feobv_N-18_Age-67_space-fsaverage_den-164k_lh.shape.gii',
-    %                                                          'source-aghourian2017_desc-feobv_N-18_Age-67_space-fsaverage_den-164k_rh.shape.gii']
-    tokens = regexp(mapComment, '(.*?)\s*:\s*(.*?)_(.*?)_N([0-9]*)_Age([0-9]*)', 'tokens', 'once');
-    mapCat = tokens{1};
-    mapFileNameL = sprintf('source-%s_desc-%s_N-%s_Age-%s_space-fsaverage_den-164k_lh.shape.gii', tokens{3}, tokens{2}, tokens{4:5});
-    mapFileNameR = strrep(mapFileNameL, 'lh.shape.gii', 'rh.shape.gii');
-end

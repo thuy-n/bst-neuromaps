@@ -101,7 +101,7 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     brainmaps = tmps;
 
     % Get Maps and their Surface
-    [MapFiles, MapsSurfaceFile] = process_np_fetch_maps('PrepareNeuromap', brainmaps);
+    [MapFiles, MapsSurfaceFile] = process_np_fetch_maps('PrepareNeuromap', space, brainmaps);
 
     for iInput = 1 : length(sInputs)
         % Compute correlations
