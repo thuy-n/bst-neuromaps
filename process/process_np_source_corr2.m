@@ -42,6 +42,12 @@ function sProcess = GetDescription() %#ok<DEFNU>
                                      '1 source file and N brain maps<BR>'];
     sProcess.options.help.Type    = 'label';
     % === METRIC, CORRECTION
+
+    % === SPIN TEST
+    sProcess.options.nspins.Comment = 'Number of spins for spin test (0 = no spin test): ';
+    sProcess.options.nspins.Type    = 'value';
+    sProcess.options.nspins.Value   = {10, '', 0};
+
 end
 
 
@@ -54,7 +60,7 @@ end
 %% ===== RUN =====
 function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     OutputFiles = {};
-
+    nSpins = sProcess.options.nspins.Value{1};
     % All files must have surface or volume sources
     sResultsB1 = in_bst_results(sInputsB(1).FileName, 0, 'HeadModelType', 'Time');
     % Verify correct source space
@@ -108,18 +114,23 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     for iInputA = 1 : length(sInputsA)
         sMatrixMat = db_template('matrixmat');
         sMatrixMat.Comment = 'Brain map corr';
+        sMatrixMat.Options.SpinTest = [];
         % Accumulator for matrices, one matrix per surface file
         for iMapSurfaceFile = 1 : length(MapsSurfaceFiles)
             % Maps with common Surface file
             MapsSurfaceFile = MapsSurfaceFiles{iMapSurfaceFile};
             MapFiles = MapFilesGroups{iMapSurfaceFile};
             % Compute correlations
-            sMatrixTmpMat = CorrelationSurfaceMaps(sInputsA(iInputA).FileName, MapFiles, MapsSurfaceFile);
+            sMatrixTmpMat = CorrelationSurfaceMaps(sInputsA(iInputA).FileName, MapFiles, MapsSurfaceFile, nSpins);
         end
         % Concatename matrices (add results from other maps)
         sMatrixMat.Time = sMatrixTmpMat.Time;
-        sMatrixMat.Value =  [sMatrixMat.Value; sMatrixTmpMat.Value];                   % size [nMaps,1]
+        sMatrixMat.Value =  [sMatrixMat.Value; sMatrixTmpMat.Value];                   % size [nMaps, nTime]
         sMatrixMat.Description = [sMatrixMat.Description; sMatrixTmpMat.Description];  % size [nMaps,1]
+        % TODO: Do we need to save this?
+        if nSpins > 0
+            sMatrixMat.Options.SpinTest = cat(1, sMatrixMat.Options.SpinTest, sMatrixTmpMat.Options.SpinTest); % size [nMaps, nTime, nSpins]
+        end
         % Add history entry
         sMatrixMat = bst_history('add', sMatrixMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputsA(iInputA).FileName));
         % === SAVE FILE ===
@@ -139,36 +150,103 @@ end
 %  ===== SUPPORT FUNCTIONS ================================================
 %  ========================================================================
 
-function [sMatrixMat] = CorrelationSurfaceMaps(OrgFile, MapFiles, MapsSurfaceFile)
-    % Check for surface files
-    sOrgResultsMat = in_bst_results(OrgFile, 0, 'SurfaceFile');
+function [sMatrixMat] = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile, nSpins)
+    % No spinning case
+    if nargin < 3 || isempty(nSpins) || nSpins < 1
+        nSpins = 0;
+    end
+    % Prepare Surface files
+    sResultsMat = in_bst_results(ResultsFile, 0, 'SurfaceFile');
     % Project if needed
     % TODO a better check needs to be done for warped surfaces
-    if strcmp(sOrgResultsMat.SurfaceFile, MapsSurfaceFile)
+    if strcmp(sResultsMat.SurfaceFile, MapsSurfaceFile)
         sResultsProjFileName = '';
-        sResultsProjMat = in_bst_results(OrgFile, 1);
+        sResultsProjMat = in_bst_results(ResultsFile, 1);
     else
-        sResultsProjFileName = bst_project_sources({OrgFile}, MapsSurfaceFile, 0, 0);
+        sResultsProjFileName = bst_project_sources({ResultsFile}, MapsSurfaceFile, 0, 0);
         sResultsProjFileName = sResultsProjFileName{1};
         [~, iStudyProj] = bst_get('ResultsFile', sResultsProjFileName);
         sResultsProjMat = in_bst_results(sResultsProjFileName, 1);
     end
-    % Check size of InputA
+    % Check time dimension for InputA
     TimesA = sResultsProjMat.Time;
-    corrVals = zeros(length(MapFiles), length(TimesA));
-    % Perform correlation
+    % Correlation values without spins
+    corrValues = zeros(length(MapFiles), length(TimesA));
+    % Correlation values without spins
+    corrSpinValues = zeros(length(MapFiles), length(TimesA), nSpins);
+
+    % Perform correlations between Results and each Map
     mapComments = cell(1, length(MapFiles));
     for iMap = 1 : length(MapFiles)
-        % Load map
-        sMapMat = in_bst_results(MapFiles{iMap}, 1);
-        mapComments{iMap} = sMapMat.Comment;
+        % Load Map
+        sOrgMapMat = in_bst_results(MapFiles{iMap}, 1);
+        mapComments{iMap} = sOrgMapMat.Comment;
+        % Comptue correlation for each sample in InputA
         for iTimeA = 1 : length(TimesA)
-            if length(sMapMat.Time) == length(TimesA)
+            if length(sOrgMapMat.Time) == length(TimesA)
                 iTimeB = iTimeA;
             else
                 iTimeB = 1;
             end
-            corrVals(iMap, iTimeA) = bst_corrn(transpose(sMapMat.ImageGridAmp(:,iTimeA)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
+            % Spatial correlation with Map
+            corrValues(iMap, iTimeA) = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeA)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
+
+            % Spatial correlations with spinned Map
+            if nSpins > 0
+                % Get Subject with Maps' Surface
+                [sSubject, iSubject] = bst_get('SurfaceFile', MapsSurfaceFile);
+                defSurfaceFile = sSubject.Surface(sSubject.iCortex).FileName;
+                % Load Surface and remove any saved previous tess2tess interpolation
+                % Because the registration sphere for the destination surface will change,
+                % thus the test2testt_interp needs to be recomputed each time
+                sMapSrfMat = in_tess_bst(MapsSurfaceFile);
+                tmp.tess2tess_interp = [];
+                bst_save(file_fullpath(MapsSurfaceFile), tmp, [], 1);
+                % Create a copy to the map surface, this will be the changing sping surface
+                rotSrfFileFull = strrep(file_fullpath(MapsSurfaceFile), '.mat', '_spin_test.mat');
+                copyfile(file_fullpath(MapsSurfaceFile), rotSrfFileFull);
+                spnSrfFile = file_short(rotSrfFileFull);
+                iRotSrf = db_add_surface(iSubject, spnSrfFile, [sMapSrfMat.Comment, ' | Spin test']);
+                % Spinning...
+                for iSpin = 1 : nSpins
+                    % Rotate the registration sphere in the original map surface, save it in the Spin test surface
+                    sSpnSurfMat = in_tess_bst(MapsSurfaceFile);
+                    % =================
+                    % Rotate registration sphere (SCS coords) in copy of original surface
+                    sSpnSurfMat.Reg.Sphere.Vertices(:,1) =  sSpnSurfMat.Reg.Sphere.Vertices(:,1); % x
+                    sSpnSurfMat.Reg.Sphere.Vertices(:,2) =  sSpnSurfMat.Reg.Sphere.Vertices(:,2); % y
+                    sSpnSurfMat.Reg.Sphere.Vertices(:,3) = -sSpnSurfMat.Reg.Sphere.Vertices(:,3); % z
+                    % =================
+                    % Update spin surface file
+                    bst_save(file_fullpath(spnSrfFile), sSpnSurfMat);
+                    % Project map from original surface to spinned surface
+                    WmatSurf = tess_interp_tess2tess(MapsSurfaceFile, spnSrfFile, 0, 0);
+                    % Need to clean tess2tess interpolation
+                    tmp.tess2tess_interp = [];
+                    bst_save(file_fullpath(MapsSurfaceFile), tmp, [], 1);
+                    % Interpolation for 1 component
+                    spnImageGridAmp = double(WmatSurf * sOrgMapMat.ImageGridAmp);
+                    % Spatial correlation with Map
+                    corrSpinValues(iMap, iTimeA, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,iTimeA)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
+                end
+                % Delete Spin test surface
+                if (file_delete(rotSrfFileFull, 1) == 1)
+                    % Remove from database
+                    ProtocolSubjects = bst_get('ProtocolSubjects');
+                    if iSubject == 0
+                        ProtocolSubjects.DefaultSubject.Surface(iRotSrf) = [];
+                    else
+                        ProtocolSubjects.Subject(iSubject).Surface(iRotSrf) = [];
+                    end
+                    bst_set('ProtocolSubjects', ProtocolSubjects);
+                    sSubject = bst_get('Subject', iSubject);
+                    % Restore default cortex
+                    ix = find(~cellfun(@isempty,(regexpi({sSubject.Surface.FileName}, defSurfaceFile))));
+                    if ~isequal(sSubject.iCortex, ix)
+                        db_surface_default(iSubject, 'Cortex', ix, 1);
+                    end
+                end
+            end
         end
     end
     % Delete projected file and update study
@@ -181,6 +259,10 @@ function [sMatrixMat] = CorrelationSurfaceMaps(OrgFile, MapFiles, MapsSurfaceFil
     sMatrixMat = db_template('matrixmat');
     sMatrixMat.Comment = 'Brain map corr';
     sMatrixMat.Time = TimesA;
-    sMatrixMat.Value = corrVals;           % size [nMaps, nTimes]
-    sMatrixMat.Description = mapComments'; % size [nMaps,1]
+    sMatrixMat.Value = corrValues;         % save [nMaps, nTimes]
+    sMatrixMat.Description = mapComments'; % save [nMaps,1]
+    % TODO: Do we need to save these values?
+    if nSpins > 0
+        sMatrixMat.Options.SpinTest = corrSpinValues;   % save [nMaps, nTimes, nSpins]
+    end
 end

@@ -61,6 +61,11 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.brainmaps_vol.Value   = strjoin(brainmapListVol, char(10)); % Add checkbox to select all?
     sProcess.options.brainmaps_vol.Class   = 'volume';
     % === METRIC, CORRECTION
+
+    % === SPIN TEST
+    sProcess.options.nspins.Comment = 'Number of spins for spin test (0 = no spin test): ';
+    sProcess.options.nspins.Type    = 'value';
+    sProcess.options.nspins.Value   = {10, '', 0};
 end
 
 
@@ -74,6 +79,7 @@ end
 function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     OutputFiles = {};
     % Get options
+    nSpins = sProcess.options.nspins.Value{1};
     space = sProcess.options.sspace.Value;
     if strcmpi(space, 'surface')
         brainmapsStr = sProcess.options.brainmaps_srf.Value;
@@ -105,7 +111,7 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
 
     for iInput = 1 : length(sInputs)
         % Compute correlations
-        sMatrixMat = process_np_source_corr2('CorrelationSurfaceMaps', sInputs(iInput).FileName, MapFiles, MapsSurfaceFile);
+        sMatrixMat = process_np_source_corr2('CorrelationSurfaceMaps', sInputs(iInput).FileName, MapFiles, MapsSurfaceFile, nSpins);
         % === SAVE FILE ===
         % Add history entry
         sMatrixMat = bst_history('add', sMatrixMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputs(iInput).FileName));
