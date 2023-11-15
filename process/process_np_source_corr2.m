@@ -227,7 +227,7 @@ function [sMatrixMat] = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfac
                     % Interpolation for 1 component
                     spnImageGridAmp = double(WmatSurf * sOrgMapMat.ImageGridAmp);
                     % Spatial correlation with Map
-                    corrSpinValues(iMap, iTimeA, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,iTimeA)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
+                    corrSpinValues(iMap, iTimeA, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeA)));
                 end
                 % Delete Spin test surface
                 if (file_delete(rotSrfFileFull, 1) == 1)
