@@ -189,7 +189,7 @@ function [sMatrixMat] = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfac
                 iTimeB = 1;
             end
             % Spatial correlation with Map
-            corrValues(iMap, iTimeA) = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeA)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
+            corrValues(iMap, iTimeA) = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeA)));
 
             % Spatial correlations with spinned Map
             if nSpins > 0
