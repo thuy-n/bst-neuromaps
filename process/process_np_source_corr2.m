@@ -123,7 +123,7 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
             % Compute correlations
             sMatrixTmpMat = CorrelationSurfaceMaps(sInputsA(iInputA).FileName, MapFiles, MapsSurfaceFile, nSpins);
         end
-        % Concatename matrices (add results from other maps)
+        % Concatenate matrices (add results from other maps)
         sMatrixMat.Time = sMatrixTmpMat.Time;
         sMatrixMat.Value =  [sMatrixMat.Value; sMatrixTmpMat.Value];                   % size [nMaps, nTime]
         sMatrixMat.Description = [sMatrixMat.Description; sMatrixTmpMat.Description];  % size [nMaps,1]
@@ -150,7 +150,7 @@ end
 %  ===== SUPPORT FUNCTIONS ================================================
 %  ========================================================================
 
-function [sMatrixMat] = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile, nSpins)
+function sMatrixMat = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile, nSpins)
     % No spinning case
     if nargin < 3 || isempty(nSpins) || nSpins < 1
         nSpins = 0;
@@ -191,7 +191,7 @@ function [sMatrixMat] = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfac
             % Spatial correlation with Map
             corrValues(iMap, iTimeA) = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeA)));
 
-            % Spatial correlations with spinned Map
+            % Spatial correlations with spun Map
             if nSpins > 0
                 % Get Subject with Maps' Surface
                 [sSubject, iSubject] = bst_get('SurfaceFile', MapsSurfaceFile);
@@ -202,24 +202,46 @@ function [sMatrixMat] = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfac
                 sMapSrfMat = in_tess_bst(MapsSurfaceFile);
                 tmp.tess2tess_interp = [];
                 bst_save(file_fullpath(MapsSurfaceFile), tmp, [], 1);
-                % Create a copy to the map surface, this will be the changing sping surface
+                % Create a copy to the map surface, this will be the changing spinning surface
                 rotSrfFileFull = strrep(file_fullpath(MapsSurfaceFile), '.mat', '_spin_test.mat');
                 copyfile(file_fullpath(MapsSurfaceFile), rotSrfFileFull);
                 spnSrfFile = file_short(rotSrfFileFull);
                 iRotSrf = db_add_surface(iSubject, spnSrfFile, [sMapSrfMat.Comment, ' | Spin test']);
+
                 % Spinning...
                 for iSpin = 1 : nSpins
-                    % Rotate the registration sphere in the original map surface, save it in the Spin test surface
+                    % Rotate the registration spheres (L and R) in the original map surface, save it in the Spin test surface
                     sSpnSurfMat = in_tess_bst(MapsSurfaceFile);
-                    % =================
-                    % Rotate registration sphere (SCS coords) in copy of original surface
-                    sSpnSurfMat.Reg.Sphere.Vertices(:,1) =  sSpnSurfMat.Reg.Sphere.Vertices(:,1); % x
-                    sSpnSurfMat.Reg.Sphere.Vertices(:,2) =  sSpnSurfMat.Reg.Sphere.Vertices(:,2); % y
-                    sSpnSurfMat.Reg.Sphere.Vertices(:,3) = -sSpnSurfMat.Reg.Sphere.Vertices(:,3); % z
-                    % =================
+                    % Get vertex indices for each hemisphere
+                    [ir, il] = tess_hemisplit(sSpnSurfMat);
+                    % Get coordinates of sphere center (L and R)
+                    offset_coordinatesL= (max(sSpnSurfMat.Reg.Sphere.Vertices(il,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(il,:)))/2;
+                    offset_coordinatesR= (max(sSpnSurfMat.Reg.Sphere.Vertices(ir,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(ir,:)))/2;
+                    % Alexander-Bloch method applied opposite rotations over the X and Z axes (SCS coords)
+                    % https://doi.org/10.1016/j.neuroimage.2018.05.070
+                    I1 = eye(3,3);
+                    I1(1,1)=-1;
+                    % Random uniform sampling procedure, get rotation matrices TL and TR (for each sphere)
+                    A = normrnd(0,1,3,3);
+                    [TL, temp] = qr(A);
+                    TL = TL * diag(sign(diag(temp)));
+                    if(det(TL)<0)
+                        TL(:,1) = -TL(:,1);
+                    end
+                    % Reflect across the X-Z plane (SCS coords) for right hemisphere
+                    TR = I1 * TL * I1;
+                    % Rotate spheres
+                    sSpnSurfMat.Reg.Sphere.Vertices(il,:)= sSpnSurfMat.Reg.Sphere.Vertices(il,:) * TL;
+                    sSpnSurfMat.Reg.Sphere.Vertices(ir,:)= sSpnSurfMat.Reg.Sphere.Vertices(ir,:) * TR;
+                    % Get coordinates for new sphere center (L and R)
+                    offset_coordinatesL2= (max(sSpnSurfMat.Reg.Sphere.Vertices(il,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(il,:)))/2;
+                    offset_coordinatesR2= (max(sSpnSurfMat.Reg.Sphere.Vertices(ir,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(ir,:)))/2;
+                    % Recenter new sphere to old sphere center (L and R)
+                    sSpnSurfMat.Reg.Sphere.Vertices(il,:) = sSpnSurfMat.Reg.Sphere.Vertices(il,:)-offset_coordinatesL2 +offset_coordinatesL;
+                    sSpnSurfMat.Reg.Sphere.Vertices(ir,:) = sSpnSurfMat.Reg.Sphere.Vertices(ir,:)-offset_coordinatesR2 +offset_coordinatesR;
                     % Update spin surface file
                     bst_save(file_fullpath(spnSrfFile), sSpnSurfMat);
-                    % Project map from original surface to spinned surface
+                    % Project map from original surface to spun surface
                     WmatSurf = tess_interp_tess2tess(MapsSurfaceFile, spnSrfFile, 0, 0);
                     % Need to clean tess2tess interpolation
                     tmp.tess2tess_interp = [];
@@ -259,10 +281,26 @@ function [sMatrixMat] = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfac
     sMatrixMat = db_template('matrixmat');
     sMatrixMat.Comment = 'Brain map corr';
     sMatrixMat.Time = TimesA;
-    sMatrixMat.Value = corrValues;         % save [nMaps, nTimes]
-    sMatrixMat.Description = mapComments'; % save [nMaps,1]
-    % TODO: Do we need to save these values?
+    sMatrixMat.Value = corrValues;                     % save [nMaps, nTimes]
+    sMatrixMat.Description = mapComments';             % save [nMaps,1]
     if nSpins > 0
-        sMatrixMat.Options.SpinTest = corrSpinValues;   % save [nMaps, nTimes, nSpins]
+        p_spin_values = computeSpinPvalue(corrValues, corrSpinValues, nSpins);
+        sMatrixMat.Options.SpinTest = p_spin_values;   % save [nMaps, nTimes, nSpins]
     end
 end
+
+
+function p_spin_values = computeSpinPvalue(corrVal, corrSpinValues, nSpins)
+    % Compute p-values for spin test
+    p_spin_values= zeros(size(corrVal));
+    for iMap = 1:size(corrSpinValues,1)
+        for iTime = 1:size(corrSpinValues,2)
+            if corrVal(iMap,iTime)> 0
+                p_spin_values(iMap,iTime) = (sum(squeeze(corrSpinValues(iMap,iTime,:)) > corrVal(iMap,iTime))+1) ./ (nSpins+1);
+            else % corrVal(j,k)<= 0
+                p_spin_values(iMap,iTime) = (sum(squeeze(corrSpinValues(iMap,iTime,:)) < corrVal(iMap,iTime))+1) ./ (nSpins+1);
+            end
+        end
+    end
+end
+
