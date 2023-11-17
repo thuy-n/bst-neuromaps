@@ -81,7 +81,7 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     % Verify time definition
     % FilesB must have the same time axis: TimesB
     for iInputB = 1 : length(sInputsB)
-        sResultsMat = in_bst_results(sInputs(iInputB).FileName, 0, 'Time');
+        sResultsMat = in_bst_results(sInputsB(iInputB).FileName, 0, 'Time');
         if ~isequal(sResultsMat.Time, sResultsB1.Time)
             bst_report('Error', sProcess, sInputsB(iInputB), 'Input files B must have the same time definition.');
             return;
@@ -92,8 +92,8 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     % filesA (N samples) vs filesB (1 sample)   OK      N Corr values
     % filesA (N samples) vs filesB (N samples)  OK      N Corr values
     % filesA (M samples) vs filesB (N samples)  Not OK
-    for iInputB = 1 : length(sInputsB)
-        sResultsMat = in_bst_results(sInputs(iInputB).FileName, 0, 'Time');
+    for iInputA = 1 : length(sInputsA)
+        sResultsMat = in_bst_results(sInputsA(iInputA).FileName, 0, 'Time');
         % FilesA must have the same time axis as TimesB
         if length(sResultsB1.Time) > 2 && ~isequal(sResultsMat.Time, sResultsB1.Time)
             bst_report('Error', sProcess, sInputsA(iInputA), 'Input files A must have the same time axis as files B');
@@ -187,10 +187,22 @@ function sMatrixMat = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceF
         % Load Map
         sOrgMapMat = in_bst_results(MapFiles{iMap}, 1);
         mapComments{iMap} = sOrgMapMat.Comment;
+        % Check if Map is one time sample
+        isOneTimeSampleMap = length(sOrgMapMat.Time) == 2 && isequal(sOrgMapMat.ImageGridAmp(:,1), sOrgMapMat.ImageGridAmp(:,2));
         % Comptue correlation for each sample in InputA
         for iTimeA = 1 : length(TimesA)
-            if length(sOrgMapMat.Time) == length(TimesA)
+            % Not allow to correlate one sample source map with multiple samples source map
+            if isOneTimeSampleA && ~isOneTimeSampleMap
+                bst_error(sprintf('Source file %s must be one time sample.', MapFiles{iMap}));
+                return
+            end
+            % Compute correlations for each sample point in InputA and its equivalent in Map
+            if length(TimesA) == length(sOrgMapMat.Time)
                 iTimeB = iTimeA;
+                if isOneTimeSampleA && isOneTimeSampleMap && iTimeA == 2
+                    continue
+                end
+            % Compute correlations for each sample point in InputA and sample 1 in Map
             else
                 iTimeB = 1;
             end
