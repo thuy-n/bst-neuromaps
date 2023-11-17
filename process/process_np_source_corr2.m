@@ -105,7 +105,7 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     AllMapFiles = {sInputsB.FileName};
     AllMapsSurfaceFiles = cell(1, length(AllMapFiles));
     for iInputB = 1 : length(sInputsB)
-        sResultsMat = in_bst_results(sInputs(iInputB).FileName, 0, 'SurfaceFile');
+        sResultsMat = in_bst_results(sInputsB(iInputB).FileName, 0, 'SurfaceFile');
         AllMapsSurfaceFiles{iInputB} = sResultsMat.SurfaceFile;
     end
     % Group by common surface file
