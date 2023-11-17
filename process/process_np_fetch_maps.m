@@ -161,8 +161,14 @@ function [MapFiles, MapSurfaceFile] = PrepareNeuromap(space, mapComments)
         sSubject = db_surface_default(iSubject, 'Cortex', ix, 1);
     end
     MapSurfaceFile = sSubject.Surface(sSubject.iCortex).FileName;
-    % TODO Sanity check by comparing with the cortical surface in the plugin
-
+    % Sanity check by comparing with the cortical surface in the plugin
+    PluginSurfaceFile = fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface',  'tess_cortex_pial_low.mat');
+    sMapSrfMat = in_tess_bst(MapSurfaceFile);
+    sPluSrfMat = in_tess_bst(PluginSurfaceFile);
+    if ~isequal(sMapSrfMat.Vertices, sPluSrfMat.Vertices)
+        bst_error('The FsAverage templates (neuromaps plugin and Protocol) are different');
+        return
+    end
     % Import brain maps in Neuromaps Subject
     for iMap = 1 : length(mapInfos)
         % Condition for map Category
