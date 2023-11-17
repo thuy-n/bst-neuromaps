@@ -28,8 +28,8 @@ end
 %% ===== GET DESCRIPTION =====
 function sProcess = GetDescription() %#ok<DEFNU>
     % Get List
-    brainmapListSrf = process_np_fetch_maps('GetBrainMapsList', 'surface');
-    brainmapListVol = process_np_fetch_maps('GetBrainMapsList', 'volume');
+    brainmapListSrf = GetBrainMapsList('surface');
+    brainmapListVol = GetBrainMapsList('volume');
     % Description the process
     sProcess.Comment     = 'Spatial correlation';
     sProcess.Category    = 'Custom';
@@ -125,4 +125,17 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     end
     % Update whole tree
     panel_protocols('UpdateTree');
+end
+
+function mapComments = GetBrainMapsList(space)
+    % Brain map Comments from brain FileNames in bst_neuromaps Plugin
+    % Find all Brainstorm source files
+    mapFiles = dir(fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', space,  '**/*_sources.mat'));
+    mapComments = {};
+    for iMap = 1 : length(mapFiles)
+        % Go from filename to comment
+        mapComments{end+1} = regexprep(mapFiles(iMap).name, ['^results_', space, '_'], '');
+        mapComments{end}   = regexprep(mapComments{end}, '_sources.mat$', '');
+        mapComments{end}   = regexprep(mapComments{end}, '__', ': ');
+    end
 end
