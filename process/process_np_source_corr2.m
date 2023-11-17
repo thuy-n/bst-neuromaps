@@ -61,6 +61,12 @@ end
 function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     OutputFiles = {};
     nSpins = sProcess.options.nspins.Value{1};
+    % Load neuromaps plugin if needed
+    PlugDesc = bst_plugin('GetDescription', 'neuromaps');
+    if ~PlugDesc.isLoaded
+        bst_plugin('Load', 'neuromaps');
+    end
+
     % All files must have surface or volume sources
     sResultsB1 = in_bst_results(sInputsB(1).FileName, 0, 'HeadModelType', 'Time');
     % Verify correct source space

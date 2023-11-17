@@ -50,6 +50,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.sspace.Type       = 'radio_linelabel';
     sProcess.options.sspace.Value      = 'surface';
     sProcess.options.sspace.Controller = struct('surface', 'surface', 'volume', 'volume');
+    % TODO: Update to GUI Lists
     % === SURFACE BRAIN MAPS
     sProcess.options.brainmaps_srf.Comment = 'Brain maps from Neuromaps (wiil be a list)';
     sProcess.options.brainmaps_srf.Type    = 'textarea';
@@ -78,6 +79,11 @@ function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
         brainmapsStr = sProcess.options.brainmaps_srf.Value;
     elseif strcmpi(space, 'volume')
         brainmapsStr = sProcess.options.brainmaps_vol.Value;
+    end
+    % Load neuromaps plugin if needed
+    PlugDesc = bst_plugin('GetDescription', 'neuromaps');
+    if ~PlugDesc.isLoaded
+        bst_plugin('Load', 'neuromaps');
     end
 
     % Get brain maps Comments
@@ -217,4 +223,3 @@ function mapComments = GetBrainMapsList(space)
         mapComments{end}   = regexprep(mapComments{end}, '__', ': ');
     end
 end
-

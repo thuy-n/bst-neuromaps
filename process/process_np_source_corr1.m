@@ -86,6 +86,12 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     elseif strcmpi(space, 'volume')
         brainmapsStr = sProcess.options.brainmaps_vol.Value;
     end
+    % Load neuromaps plugin if needed
+    PlugDesc = bst_plugin('GetDescription', 'neuromaps');
+    if ~PlugDesc.isLoaded
+        bst_plugin('Load', 'neuromaps');
+    end
+
     % Verify correct source space
     for iInput = 1 : length(sInputs)
         sResultsMat = in_bst_results(sInputs(iInput).FileName, 0, 'HeadModelType');
