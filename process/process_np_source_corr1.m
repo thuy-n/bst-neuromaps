@@ -90,8 +90,9 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     for iInput = 1 : length(sInputs)
         sResultsMat = in_bst_results(sInputs(iInput).FileName, 0, 'HeadModelType');
         if ~strcmpi(sResultsMat.HeadModelType, space)
-            disp('Select the proper source space');
-            %return with error
+            bst_report('Error', sProcess, sInputs(iInput), 'Input file has a different source space than the requested maps.');
+            OutputFiles = [];
+            return;
         end
     end
 
@@ -108,6 +109,11 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
 
     % Get Maps and their Surface
     [MapFiles, MapsSurfaceFile] = process_np_fetch_maps('PrepareNeuromap', space, brainmaps);
+    if isempty(MapFiles) || isempty(MapsSurfaceFile)
+        bst_report('Error', sProcess, [], 'Could not find requested maps.');
+        OutputFiles = [];
+        return;
+    end
 
     for iInput = 1 : length(sInputs)
         % Compute correlations

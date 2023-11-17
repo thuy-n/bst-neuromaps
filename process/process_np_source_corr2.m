@@ -68,8 +68,8 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     for iInput = 1 : length([sInputsA, sInputsB])
         sResultsMat = in_bst_results(sInputs(iInput).FileName, 0, 'HeadModelType');
         if ~strcmpi(sResultsMat.HeadModelType, sResultsB1.HeadModelType)
-            disp('Select the proper source space');
-            %return with error
+            bst_report('Error', sProcess, sInputs(iInput), 'Input file have different source space.');
+            return;
         end
     end
     % Verify time definition
@@ -77,8 +77,8 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     for iInputB = 1 : length(sInputsB)
         sResultsMat = in_bst_results(sInputs(iInputB).FileName, 0, 'Time');
         if ~isequal(sResultsMat.Time, sResultsB1.Time)
-            disp('Sources in FilesB must have the same time axis');
-            %return with error
+            bst_report('Error', sProcess, sInputsB(iInputB), 'Input files B must have the same time definition.');
+            return;
         end
     end
     % Validate time dimensions for FilesA and FilesB
@@ -89,9 +89,9 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     for iInputB = 1 : length(sInputsB)
         sResultsMat = in_bst_results(sInputs(iInputB).FileName, 0, 'Time');
         % FilesA must have the same time axis as TimesB
-        if length(sResultsB1.Time) > 1 && ~isequal(sResultsMat.Time, sResultsB1.Time)
-            disp('Sources in FilesA must have the same time axis as FilesB');
-            %return with error
+        if length(sResultsB1.Time) > 2 && ~isequal(sResultsMat.Time, sResultsB1.Time)
+            bst_report('Error', sProcess, sInputsA(iInputA), 'Input files A must have the same time axis as files B');
+            return;
         end
     end
 

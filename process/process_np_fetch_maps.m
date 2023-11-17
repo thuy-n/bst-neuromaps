@@ -93,6 +93,11 @@ function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
 
     % Get brain maps
     MapFiles = PrepareNeuromap(space, brainmaps);
+    if isempty(MapFiles)
+        bst_report('Error', sProcess, [], 'Could not find requested maps.');
+        OutputFiles = [];
+        return;
+    end
 
     % Output filenames
     OutputFiles = MapFiles;
@@ -121,8 +126,8 @@ function [MapFiles, MapSurfaceFile] = PrepareNeuromap(space, mapComments)
         mapFileName = regexprep(mapFileName, ': ', '__');
         mapFullPath = bst_fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', space, mapCategory, mapFileName);
         if ~exist(mapFullPath, 'file')
-            fprintf('Requested brain map "%s" does not exist', mapFullPath);
-            %return with error
+            bst_error(sprintf('Requested brain map "%s" does not exist', mapFullPath));
+            return
         end
         mapInfos(end+1).Comment = mapComments{iMap};
         mapInfos(end).Category  = mapCategory;
@@ -139,19 +144,19 @@ function [MapFiles, MapSurfaceFile] = PrepareNeuromap(space, mapComments)
         sTemplates = bst_get('AnatomyDefaults');
         ix = find(~cellfun(@isempty,(regexpi({sTemplates.Name}, 'fsaverage'))));
         if isempty(ix)
-            disp('There is not FsAverage template')
-            %return with error
+            bst_error('FsAverage template could not be found');
+            return
         elseif length(ix) > 1
-            disp('There are more than one FsAverage templates')
-            %return with error
+            bst_error('There are more than one FsAverage templates');
+            return
         end
         db_set_template(iSubject, sTemplates(ix), 0);
         [sSubject, iSubject] = bst_get('Subject', SubjectName);
     end
     % Check that it uses FsAverage
     if isempty(regexpi(sSubject.Anatomy(sSubject.iAnatomy).Comment, 'fsaverage', 'match'))
-        disp('Subject is not using FsAverage anatomy');
-        %return with error
+        bst_error('Subject is not using FsAverage template anatomy');
+        return
     end
     % Cortical surface with 15002 vertices (distributed in Brainstorm) MUST be the default one
     % This is because the maps in the bst-neuromaps were obtained for this surface
@@ -176,8 +181,8 @@ function [MapFiles, MapSurfaceFile] = PrepareNeuromap(space, mapComments)
         if isempty(iStudy)
             iStudy = db_add_condition(sSubject.Name, mapInfos(iMap).Category);
             if isempty(iStudy)
-                error('Study could not be created : "%s".', mapInfos(iMap).Category);
-                %return with error
+                bst_error(sprintf('Study could not be created : "%s".', mapInfos(iMap).Category));
+                return
             end
         end
         % Get brain map file
