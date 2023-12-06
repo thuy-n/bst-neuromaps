@@ -36,14 +36,13 @@ The growing field of neuroimaging has allowed researchers in the past decades to
 
 ## Citations
 - Please cite the original conception of the neuromaps toolbox when using this plugin:
-> Markello, R.D., Hansen, J.Y., Liu, ZQ. et al. neuromaps: structural and functional interpretation of brain maps. Nat Methods 19, 1472–1479 (2022). DOI: 10.1038/s41592-022-01625-w.
-Direct link: https://doi.org/10.1038/s41592-022-01625-w
+> Markello, R.D., Hansen, J.Y., Liu, ZQ. et al. neuromaps: structural and functional interpretation of brain maps. Nat Methods 19, 1472–1479 (2022). [DOI: 10.1038/s41592-022-01625-w](https://doi.org/10.1038/s41592-022-01625-w).
     
 - If you used any of the included maps, please also cite the original papers that publish the data. References for each map can be found in [the spreadsheet](https://docs.google.com/spreadsheets/d/1R0usElQw1HCYaIGMpgJk-u3HcL6N1nQ1/edit?usp=sharing&ouid=114237437498686296895&rtpof=true&sd=true).
 
 - If you used the surface maps which were transformed using the registration fusion framework, please also cite:
-> Wu, J. et al. Accurate nonlinear mapping between MNI volumetric and FreeSurfer surface coordinate systems. Hum. Brain Mapp. 39, 3793–3808 (2018). DOI: 10.1002/hbm.24213
-Direct link: https://doi.org/10.1002/hbm.24213
+> Wu, J. et al. Accurate nonlinear mapping between MNI volumetric and FreeSurfer surface coordinate systems. Hum. Brain Mapp. 39, 3793–3808 (2018). [DOI: 10.1002/hbm.24213](https://doi.org/10.1002/hbm.24213).
+
 
 ## Contributing
 We welcome contributions from the community to help improve and expand the functionality of the neuromaps plugin. Feel free to submit pull requests, report issues, or provide suggestions! Your feedback is invaluable in ensuring a user-friendly experience for researchers worldwide!
