@@ -118,39 +118,43 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
 
     % For each FileA compute correlations with all FilesB
     for iInputA = 1 : length(sInputsA)
-        sMatrixMat = db_template('matrixmat');
-        sMatrixMat.Comment = 'Brain map corr';
-        sMatrixMat.Options = [];
-        % Accumulator for matrices, one matrix per surface file
+        sOutput = db_template('statmat');
+        sOutput.Type    = 'matrix';
+        sOutput.Comment = 'Brain map corr';
+        if nSpins > 0
+            sOutput.Comment = [sOutput.Comment, ' | spintest'];
+        end
+        sOutput.Options = [];
+        % Accumulator for stat files, one stat file per surface file
         for iMapSurfaceFile = 1 : length(MapsSurfaceFiles)
             % Maps with common Surface file
             MapsSurfaceFile = MapsSurfaceFiles{iMapSurfaceFile};
             MapFiles = MapFilesGroups{iMapSurfaceFile};
             % Compute correlations
-            sMatrixTmpMat = CorrelationSurfaceMaps(sInputsA(iInputA).FileName, MapFiles, MapsSurfaceFile, nSpins);
+            sTmpStatMat = CorrelationSurfaceMaps(sInputsA(iInputA).FileName, MapFiles, MapsSurfaceFile, nSpins);
         end
-        % Concatenate matrices (add results from other maps)
-        sMatrixMat.Time = sMatrixTmpMat.Time;
-        sMatrixMat.Value =  [sMatrixMat.Value; sMatrixTmpMat.Value];                   % size [nMaps, nTime]
-        sMatrixMat.Description = [sMatrixMat.Description; sMatrixTmpMat.Description];  % size [nMaps,1]
+        % Concatenate fields (add results from other maps)
+        sStatMat.Time = sTmpStatMat.Time;
+        sStatMat.pmap =  [sStatMat.pmap; sTmpStatMat.pmap];                      % size [nMaps, nTime]
+        sStatMat.Description = [sStatMat.Description; sTmpStatMat.Description];  % size [nMaps,1]
         % Concatenate all fields in Options
-        optionsFields = fieldnames(sMatrixTmpMat.Options);
+        optionsFields = fieldnames(sTmpStatMat.Options);
         for iField = 1 : length(optionsFields)
-            if ~isfield(sMatrixMat.Options, optionsFields{iField})
-                sMatrixMat.Options.(optionsFields{iField}) = [];
+            if ~isfield(sStatMat.Options, optionsFields{iField})
+                sStatMat.Options.(optionsFields{iField}) = [];
             end
-            sMatrixMat.Options.(optionsFields{iField}) = cat(1, sMatrixMat.Options.(optionsFields{iField}), sMatrixTmpMat.Options.(optionsFields{iField}));
+            sStatMat.Options.(optionsFields{iField}) = cat(1, sStatMat.Options.(optionsFields{iField}), sTmpStatMat.Options.(optionsFields{iField}));
         end
         % Add history entry
-        sMatrixMat = bst_history('add', sMatrixMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputsA(iInputA).FileName));
+        sStatMat = bst_history('add', sStatMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputsA(iInputA).FileName));
         % === SAVE FILE ===
         % Output filename
         sStudy = bst_get('Study', sInputsA(iInputA).iStudy);
-        OutputFiles{end+1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'matrix_neuromaps');
+        OutputFiles{end+1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'pmatrix_neuromaps');
         % Save file
-        bst_save(OutputFiles{end}, sMatrixMat, 'v6');
+        bst_save(OutputFiles{end}, sStatMat, 'v6');
         % Register in database
-        db_add_data(sInputsA(iInputA).iStudy, OutputFiles{end}, sMatrixMat);
+        db_add_data(sInputsA(iInputA).iStudy, OutputFiles{end}, sStatMat);
     end
     % Update whole tree
     panel_protocols('UpdateTree');
@@ -160,7 +164,7 @@ end
 %  ===== SUPPORT FUNCTIONS ================================================
 %  ========================================================================
 
-function sMatrixMat = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile, nSpins)
+function sOutput = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile, nSpins)
     % No spinning case
     if nargin < 3 || isempty(nSpins) || nSpins < 1
         nSpins = 0;
@@ -337,16 +341,28 @@ function sMatrixMat = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceF
     if nSpins > 0
         p_spin_test = computeSpinPvalue(r_no_spin, r_spin_test, nSpins);
     end
-    % TODO decide to keep as matrix or statmat
-    % Create matrix structure
-    sMatrixMat = db_template('matrixmat');
-    sMatrixMat.Comment = 'Brain map corr';
-    sMatrixMat.Time = TimesA;
-    sMatrixMat.Description = mapComments;       % [nMaps,1]
-    sMatrixMat.Value = r_no_spin;               % [nMaps, nTimes]
-    sMatrixMat.Options.pNoSpin   = p_no_spin;   % [nMaps, nTimes]
-    sMatrixMat.Options.rSpinTest = r_spin_test; % [nMaps, nTimes, nSpins]
-    sMatrixMat.Options.pSpinTest = p_spin_test; % [nMaps, nTimes]
+    % Create statmat structure
+    sOutput = db_template('statmat');
+    sOutput.Type    = 'matrix';
+    sOutput.Comment = 'Brain map corr';
+    if nSpins > 0
+        sOutput.Comment = [sOutput.Comment, ' | spintest'];
+    end
+    sOutput.Time = TimesA;
+    sOutput.Description = mapComments;             % [nMaps,1]
+    sOutput.tmap        = r_no_spin;               % [nMaps, nTimes]
+    if nSpins > 0
+        sOutput.Options.nSpins      = nSpins;
+        sOutput.pmap                = p_spin_test; % [nMaps, nTimes]
+        sOutput.Options.rSpinTest   = r_spin_test; % [nMaps, nTimes, nSpins]
+        sOutput.Options.pNoSpinTest = p_no_spin;   % [nMaps, nTimes]
+    else
+        sOutput.pmap    = p_no_spin;               % [nMaps, nTimes]
+    end
+    sOutput.Correction   = 'no';
+    sOutput.ChannelFlag  = [];
+    sOutput.ColormapType = 'stat2';
+    sOutput.DisplayUnits = 'correlation';
 end
 
 

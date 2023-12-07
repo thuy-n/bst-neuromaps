@@ -123,17 +123,17 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
 
     for iInput = 1 : length(sInputs)
         % Compute correlations
-        sMatrixMat = process_np_source_corr2('CorrelationSurfaceMaps', sInputs(iInput).FileName, MapFiles, MapsSurfaceFile, nSpins);
+        sStatMat = process_np_source_corr2('CorrelationSurfaceMaps', sInputs(iInput).FileName, MapFiles, MapsSurfaceFile, nSpins);
         % === SAVE FILE ===
         % Add history entry
-        sMatrixMat = bst_history('add', sMatrixMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputs(iInput).FileName));
+        sStatMat = bst_history('add', sStatMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputs(iInput).FileName));
         % Output filename
         sStudy = bst_get('Study', sInputs(iInput).iStudy);
-        OutputFiles{end+1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'matrix_neuromaps');
+        OutputFiles{end+1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'pmatrix_neuromaps');
         % Save file
-        bst_save(OutputFiles{end}, sMatrixMat, 'v6');
+        bst_save(OutputFiles{end}, sStatMat, 'v6');
         % Register in database
-        db_add_data(sInputs(iInput).iStudy, OutputFiles{end}, sMatrixMat);
+        db_add_data(sInputs(iInput).iStudy, OutputFiles{end}, sStatMat);
     end
     % Update whole tree
     panel_protocols('UpdateTree');
