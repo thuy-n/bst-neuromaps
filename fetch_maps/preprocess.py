@@ -64,7 +64,7 @@ for brain_map, brain_map_subtypes in brain_maps.items():
                 shutil.copyfile(original_map, output_filename)
             # Not transforming these specific maps because neuromaps warns that they are best used in the provided fsaverage space
             # https://github.com/netneurolab/neuromaps/blob/abc085a/neuromaps/datasets/annotations.py#L238
-            if source == 'norgaard2021' or (source == 'beliveau2017' and desc == 'cimbi36') or (source == 'beliveau2017' and desc == 'sb207145'):
+            if source == 'norgaard2021' or source == 'beliveau2017':
                 # Make a copy of the surface files and set the name in the same format as the other ones
                 if space == 'fsaverage':
                     for gii, hemi in zip(original_map, ['l', 'r']):
