@@ -165,6 +165,16 @@ function sMatrixMat = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceF
     if nargin < 3 || isempty(nSpins) || nSpins < 1
         nSpins = 0;
     end
+    if nSpins > 0
+        % Backup previous tess2tess interpolation in Map (if any)
+        % Because the projecting from Map to the Spin will overwrite it
+        sMapSrfMat = in_tess_bst(MapsSurfaceFile);
+        MapTess2tessBackup = [];
+        if isfield(sMapSrfMat, 'tess2tess_interp') && all(isfield(sMapSrfMat.tess2tess_interp, {'Signature', 'Wmat'})) &&  ...
+                  ~isempty(sMapSrfMat.tess2tess_interp.Signature) && ~isempty(sMapSrfMat.tess2tess_interp.Wmat)
+            MapTess2tessBackup = sMapSrfMat.tess2tess_interp;
+        end
+    end
     % Prepare Surface files
     sResultsMat = in_bst_results(ResultsFile, 0, 'SurfaceFile');
     % Project if needed
@@ -295,6 +305,11 @@ function sMatrixMat = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceF
                 end
             end
         end
+    end
+    % Restore original tess2tess interpolation in Map surface
+    if (nSpins > 0) && ~isempty(MapTess2tessBackup)
+        tmp.tess2tess_interp = MapTess2tessBackup;
+        bst_save(file_fullpath(MapsSurfaceFile), tmp, [], 1);
     end
     % Delete projected file and update study
     if ~isempty(sResultsProjFileName)
