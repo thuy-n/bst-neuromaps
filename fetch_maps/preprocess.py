@@ -60,7 +60,7 @@ for brain_map, brain_map_subtypes in brain_maps.items():
             # Fetch original map
             original_map = fetch_annotation(source=source, desc=desc, space=space, den=den, data_dir=tmp_dir)
             if space == 'MNI152':
-                output_filename = os.path.join(tmp_dir, f"./volume/{brain_map}/source-{source}_desc-{desc}_N-{N}_Age-{age}_space-mni152_den-{den}.nii.gz")
+                output_filename = os.path.join(tmp_dir, f"./volume/{brain_map}/subtype-{brain_map_subtype}_source-{source}_desc-{desc}_N-{N}_Age-{age}_space-mni152_den-{den}.nii.gz")
                 shutil.copyfile(original_map, output_filename)
             # Not transforming these specific maps because neuromaps warns that they are best used in the provided fsaverage space
             # https://github.com/netneurolab/neuromaps/blob/abc085a/neuromaps/datasets/annotations.py#L238
@@ -68,7 +68,7 @@ for brain_map, brain_map_subtypes in brain_maps.items():
                 # Make a copy of the surface files and set the name in the same format as the other ones
                 if space == 'fsaverage':
                     for gii, hemi in zip(original_map, ['l', 'r']):
-                        output = os.path.join(tmp_dir, f"./surface/{brain_map}/source-{source}_desc-{desc}_N-{N}_Age-{age}_space-fsaverage_den-164k_{hemi}h.shape.gii")
+                        output = os.path.join(tmp_dir, f"./surface/{brain_map}/subtype-{brain_map_subtype}_source-{source}_desc-{desc}_N-{N}_Age-{age}_space-fsaverage_den-164k_{hemi}h.shape.gii")
                         shutil.copyfile(gii, output)
                         os.remove(gii)
                 continue
@@ -84,7 +84,7 @@ for brain_map, brain_map_subtypes in brain_maps.items():
                 surface_images.append(images.construct_shape_gii(receptor_hemi_data))
             # Save maps
             for gii, hemi in zip(surface_images, ['l', 'r']):
-                output_filename = os.path.join(tmp_dir, f"./surface/{brain_map}/source-{source}_desc-{desc}_N-{N}_Age-{age}_space-fsaverage_den-164k_{hemi}h.shape.gii")
+                output_filename = os.path.join(tmp_dir, f"./surface/{brain_map}/subtype-{brain_map_subtype}_source-{source}_desc-{desc}_N-{N}_Age-{age}_space-fsaverage_den-164k_{hemi}h.shape.gii")
                 nib.save(gii, output_filename)
 shutil.rmtree(os.path.join(tmp_dir, 'annotations'))
 
