@@ -51,6 +51,8 @@ for brain_map, brain_map_subtypes in brain_maps.items():
     os.mkdir(os.path.join(tmp_dir, 'volume',  f'{brain_map}'))
     for brain_map_subtype, brain_map_descs in brain_map_subtypes.items():
         for brain_map_desc in brain_map_descs:
+            # Repace / with --- (3 dash), to have have valid filepath
+            brain_map_subtype = brain_map_subtype.replace('/', '---')
             source = brain_map_desc["source"]
             desc   = brain_map_desc["description"]
             space  = brain_map_desc["space"]

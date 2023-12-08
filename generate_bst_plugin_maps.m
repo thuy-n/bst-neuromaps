@@ -90,6 +90,8 @@ for iMap = 1 : nHdSurfMaps
     [~, mapFolder] = bst_fileparts(hdSurfMapsFiles(iMap).folder);
     tokens = regexp(hdSurfMapsFiles(iMap).name, 'subtype-(.*?)_source-(.*?)_desc-(.*?)_N-([0-9]*)_Age-([0-9]*)', 'tokens', 'once');
     mapComment = sprintf('%s: %s_%s_%s_N%s_Age%s', mapFolder, tokens{1}, tokens{3}, tokens{2}, tokens{4:5});
+    % Replace '---' with '/', replaced in Python to have a valid filepath
+    mapComment = strrep(mapComment, '---', '/');
     % Left and right hemisphere files
     mapFilePathL = bst_fullfile(hdSurfMapsDir, mapFolder, hdSurfMapsFiles(iMap).name);
     mapFilePathR = strrep(mapFilePathL, 'lh.shape.gii', 'rh.shape.gii');
@@ -159,6 +161,8 @@ for iMap = 1 : length(hdVolMapsFiles)
     [~, mapFolder] = bst_fileparts(hdVolMapsFiles(iMap).folder);
     tokens = regexp(hdVolMapsFiles(iMap).name, 'subtype-(.*?)_source-(.*?)_desc-(.*?)_N-([0-9]*)_Age-([0-9]*)', 'tokens', 'once');
     mapComment = sprintf('%s: %s_%s_%s_N%s_Age%s', mapFolder, tokens{1}, tokens{3}, tokens{2}, tokens{4:5});
+    % Replace '---' with '/', replaced in Python to have a valid filepath
+    mapComment = strrep(mapComment, '---', '/');
     % Volume file
     mapFilePath = bst_fullfile(hdVolMapsDir, mapFolder, hdVolMapsFiles(iMap).name);
     % TBD for volume files:|
