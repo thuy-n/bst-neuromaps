@@ -84,11 +84,12 @@ hdSurfaceFile = sSubject.Surface(sSubject.iCortex).FileName;
 % Import high-definition Surface maps in Subject01
 hdSurfMapImportFiles = cell(nHdSurfMaps, 1);
 for iMap = 1 : nHdSurfMaps
-    % Build map Comment from map File info
-    % e.g. ['./Acetylcholine/source-aghourian2017_desc-feobv_N-18_Age-67_space-fsaverage_den-164k_lh.shape.gii'] > 'Acetylcholine: feobv_aghourian2017_N18_Age67'
+    % Build map Comment from map File info, e.g.:
+    %  from: ./Acetylcholine/subtype-VaCht_source-aghourian2017_desc-feobv_N-18_Age-67_space-fsaverage_den-164k_lh.shape.gii
+    %  to:     Acetylcholine: VaCht_feobv_aghourian2017_N18_Age67
     [~, mapFolder] = bst_fileparts(hdSurfMapsFiles(iMap).folder);
-    tokens = regexp(hdSurfMapsFiles(iMap).name, 'source-(.*?)_desc-(.*?)_N-([0-9]*)_Age-([0-9]*)', 'tokens', 'once');
-    mapComment = sprintf('%s: %s_%s_N%s_Age%s', mapFolder, tokens{2}, tokens{1}, tokens{3:4});
+    tokens = regexp(hdSurfMapsFiles(iMap).name, 'subtype-(.*?)_source-(.*?)_desc-(.*?)_N-([0-9]*)_Age-([0-9]*)', 'tokens', 'once');
+    mapComment = sprintf('%s: %s_%s_%s_N%s_Age%s', mapFolder, tokens{1}, tokens{3}, tokens{2}, tokens{4:5});
     % Left and right hemisphere files
     mapFilePathL = bst_fullfile(hdSurfMapsDir, mapFolder, hdSurfMapsFiles(iMap).name);
     mapFilePathR = strrep(mapFilePathL, 'lh.shape.gii', 'rh.shape.gii');
@@ -152,11 +153,12 @@ copyfile(ldSurfaceFile, ldSurfMapsDir, 'f');
 % Import Volume maps in Subject01
 hdVolMapImportFiles = cell(nHdVolMaps, 1);
 for iMap = 1 : length(hdVolMapsFiles)
-    % Build map Comment from map File info
-    % e.g. ['./Acetylcholine/source-aghourian2017_desc-feobv_N-18_Age-67_space-mni152_den-1mm.nii.gz'] > 'Acetylcholine: feobv_aghourian2017_N18_Age67'
+    % Build map Comment from map File info, e.g.:
+    % from: ./Acetylcholine/subtype-VaCht_source-aghourian2017_desc-feobv_N-18_Age-67_space-mni152_den-1mm.nii.gz
+    % to:     Acetylcholine: VaCht_feobv_aghourian2017_N18_Age67
     [~, mapFolder] = bst_fileparts(hdVolMapsFiles(iMap).folder);
-    tokens = regexp(hdVolMapsFiles(iMap).name, 'source-(.*?)_desc-(.*?)_N-([0-9]*)_Age-([0-9]*)', 'tokens', 'once');
-    mapComment = sprintf('%s: %s_%s_N%s_Age%s', mapFolder, tokens{2}, tokens{1}, tokens{3:4});
+    tokens = regexp(hdVolMapsFiles(iMap).name, 'subtype-(.*?)_source-(.*?)_desc-(.*?)_N-([0-9]*)_Age-([0-9]*)', 'tokens', 'once');
+    mapComment = sprintf('%s: %s_%s_%s_N%s_Age%s', mapFolder, tokens{1}, tokens{3}, tokens{2}, tokens{4:5});
     % Volume file
     mapFilePath = bst_fullfile(hdVolMapsDir, mapFolder, hdVolMapsFiles(iMap).name);
     % TBD for volume files:|
