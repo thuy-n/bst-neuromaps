@@ -52,12 +52,12 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.sspace.Controller = struct('surface', 'surface', 'volume', 'volume');
     % TODO: Update to GUI Lists
     % === SURFACE BRAIN MAPS
-    sProcess.options.brainmaps_srf.Comment = 'Brain maps from Neuromaps (will be a list)';
+    sProcess.options.brainmaps_srf.Comment = 'Brain annotations from Neuromaps (will be a list)';
     sProcess.options.brainmaps_srf.Type    = 'textarea';
     sProcess.options.brainmaps_srf.Value   = strjoin(brainmapListSrf, char(10)); % Add checkbox to select all?
     sProcess.options.brainmaps_srf.Class   = 'surface';
     % === VOLUME BRAIN MAPS
-    sProcess.options.brainmaps_vol.Comment = 'Brain maps from Neuromaps (will be a list)';
+    sProcess.options.brainmaps_vol.Comment = 'Brain annotations from Neuromaps (will be a list)';
     sProcess.options.brainmaps_vol.Type    = 'textarea';
     sProcess.options.brainmaps_vol.Value   = strjoin(brainmapListSrf, char(10)); % Add checkbox to select all?
     sProcess.options.brainmaps_vol.Class   = 'volume';
