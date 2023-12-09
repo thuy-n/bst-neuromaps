@@ -105,9 +105,9 @@ for iMap = 1 : nHdSurfMaps
     % Get N (number of subjects averaged to obtained brain map)
     mapN = regexp(mapComment, 'N([0-9]*)', 'tokens', 'once');
     mapN = sscanf(mapN{1}, '%d');
-    % Update MapFile
-    sMapMat.Leff = mapN;
-    bst_save(MapFile, sMapMat, [], 1);
+    % Update Leff
+    tmp.Leff = mapN;
+    bst_save(MapFile, tmp, [], 1);
     hdSurfMapImportFiles{iMap} = file_short(MapFile);
 end
 
@@ -123,8 +123,8 @@ for iMap = 1 : nHdSurfMaps
     sMapProjFile = bst_project_sources(hdSurfMapImportFiles(iMap), ldSurfaceFile, 0, 0);
     ldSurfMapImportFiles(iMap) = sMapProjFile;
     % Update comment
-    sMapMat.Comment = sHdMapMat.Comment;
-    bst_save(file_fullpath(ldSurfMapImportFiles{iMap}), sMapMat, [], 1);
+    tmp.Comment = sHdMapMat.Comment;
+    bst_save(file_fullpath(ldSurfMapImportFiles{iMap}), tmp, [], 1);
 end
 
 % Export low-definition maps (sources)
