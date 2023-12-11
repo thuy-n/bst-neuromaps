@@ -80,6 +80,9 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     OutputFiles = {};
     % Get options
     nSpins = sProcess.options.nspins.Value{1};
+    if isempty(nSpins) || nSpins < 1
+        nSpins = 0;
+    end
     space = sProcess.options.sspace.Value;
     if strcmpi(space, 'surface')
         brainmapsStr = sProcess.options.brainmaps_srf.Value;
@@ -120,10 +123,13 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
         OutputFiles = [];
         return;
     end
-
+    % Progress bar
+    bst_progress('start', 'Processes', 'Computing spatial correlation...', 0, 100);
     for iInput = 1 : length(sInputs)
+        % Update progress bar text
+        bst_progress('text', sprintf('Processing file #%d/%d', iInput, length(sInputs)));
         % Compute correlations
-        sStatMat = process_np_source_corr2('CorrelationSurfaceMaps', sInputs(iInput).FileName, MapFiles, MapsSurfaceFile, nSpins);
+        sStatMat = process_np_source_corr2('CorrelationSurfaceMaps', sInputs(iInput).FileName, MapFiles, MapsSurfaceFile, nSpins, 100 * (iInput ./ length(sInputs)));
         % === SAVE FILE ===
         % Add history entry
         sStatMat = bst_history('add', sStatMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputs(iInput).FileName));
@@ -134,6 +140,8 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
         bst_save(OutputFiles{end}, sStatMat, 'v6');
         % Register in database
         db_add_data(sInputs(iInput).iStudy, OutputFiles{end}, sStatMat);
+        % Update progress bar
+        bst_progress('set', 100 * (iInput ./ length(sInputs)));
     end
     % Update whole tree
     panel_protocols('UpdateTree');

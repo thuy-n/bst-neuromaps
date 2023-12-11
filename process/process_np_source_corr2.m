@@ -61,6 +61,9 @@ end
 function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     OutputFiles = {};
     nSpins = sProcess.options.nspins.Value{1};
+    if isempty(nSpins) || nSpins < 1
+        nSpins = 0;
+    end
     % Load neuromaps plugin if needed
     PlugDesc = bst_plugin('GetDescription', 'neuromaps');
     if ~PlugDesc.isLoaded
@@ -115,9 +118,12 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
         MapFilesGroups{iia} = AllMapFiles(ic == ia(iia));
     end
 
+    % Progress bar
+    bst_progress('start', 'Processes', 'Computing spatial correlation...', 0, 100);
 
     % For each FileA compute correlations with all FilesB
     for iInputA = 1 : length(sInputsA)
+        % Output structure
         sOutput = db_template('statmat');
         sOutput.Type    = 'matrix';
         sOutput.Comment = 'Brain map corr';
@@ -127,6 +133,11 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
         sOutput.Options = [];
         % Accumulator for stat files, one stat file per surface file
         for iMapSurfaceFile = 1 : length(MapsSurfaceFiles)
+            if length(MapsSurfaceFiles) > 1
+                bst_progress('text', sprintf('Processing file #%d/%d, surface#%d/%d', iInputA, length(sInputsA)), iMapSurfaceFile, length(MapsSurfaceFiles));
+            else
+                bst_progress('text', sprintf('Processing file #%d/%d', iInputA, length(sInputsA)));
+            end
             % Maps with common Surface file
             MapsSurfaceFile = MapsSurfaceFiles{iMapSurfaceFile};
             MapFiles = MapFilesGroups{iMapSurfaceFile};
@@ -156,6 +167,8 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
         bst_save(OutputFiles{end}, sStatMat, 'v6');
         % Register in database
         db_add_data(sInputsA(iInputA).iStudy, OutputFiles{end}, sStatMat);
+        % Update progress bar
+        bst_progress('set', iInputA ./ length(sInputsA));
     end
     % Update whole tree
     panel_protocols('UpdateTree');
@@ -165,11 +178,8 @@ end
 %  ===== SUPPORT FUNCTIONS ================================================
 %  ========================================================================
 
-function sOutput = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile, nSpins)
+function sOutput = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile, nSpins, valMapBar)
     % No spinning case
-    if nargin < 3 || isempty(nSpins) || nSpins < 1
-        nSpins = 0;
-    end
     if nSpins > 0
         % Backup previous tess2tess interpolation in Map (if any)
         % Because the projecting from Map to the Spin will overwrite it
@@ -206,6 +216,11 @@ function sOutput = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile
     % Perform correlations between Results and each Map
     mapComments = cell(length(MapFiles), 1);
     for iMap = 1 : length(MapFiles)
+        if iMap == 1
+            pBarParams = bst_progress('getbarparams');
+            strBase = pBarParams.Msg;
+        end
+        bst_progress('text', [strBase, sprintf(', map #%d/%d', iMap, length(MapFiles))]);
         % Load Map
         sOrgMapMat = in_bst_results(MapFiles{iMap}, 1);
         mapComments{iMap} = sOrgMapMat.Comment;
@@ -233,6 +248,8 @@ function sOutput = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile
 
             % Spatial correlations with spun Map
             if nSpins > 0
+                % String with backspaces
+                bckstr = '';
                 % Get Subject with Maps' Surface
                 [sSubject, iSubject] = bst_get('SurfaceFile', MapsSurfaceFile);
                 defSurfaceFile = sSubject.Surface(sSubject.iCortex).FileName;
@@ -250,6 +267,9 @@ function sOutput = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile
 
                 % Spinning...
                 for iSpin = 1 : nSpins
+                    % Print indicator of nSpin
+                    nbytes = fprintf('%sSpin: %d of %d\n', bckstr, iSpin, nSpins);
+                    bckstr = repmat(char(8), 1, nbytes - length(bckstr));
                     % Rotate the registration spheres (L and R) in the original map surface, save it in the Spin test surface
                     sSpnSurfMat = in_tess_bst(MapsSurfaceFile);
                     % Get vertex indices for each hemisphere
@@ -310,6 +330,7 @@ function sOutput = CorrelationSurfaceMaps(ResultsFile, MapFiles, MapsSurfaceFile
                 end
             end
         end
+        bst_progress('inc', (iMap ./ length(MapFiles)) * valMapBar);
     end
     % Restore original tess2tess interpolation in Map surface
     if (nSpins > 0) && ~isempty(MapTess2tessBackup)
@@ -380,4 +401,3 @@ function p_spin_values = computeSpinPvalue(corrVal, corrSpinValues, nSpins)
         end
     end
 end
-
