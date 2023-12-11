@@ -131,22 +131,23 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
             MapsSurfaceFile = MapsSurfaceFiles{iMapSurfaceFile};
             MapFiles = MapFilesGroups{iMapSurfaceFile};
             % Compute correlations
-            sTmpStatMat = CorrelationSurfaceMaps(sInputsA(iInputA).FileName, MapFiles, MapsSurfaceFile, nSpins);
-        end
-        % Concatenate fields (add results from other maps)
-        sStatMat.Time = sTmpStatMat.Time;
-        sStatMat.pmap =  [sStatMat.pmap; sTmpStatMat.pmap];                      % size [nMaps, nTime]
-        sStatMat.Description = [sStatMat.Description; sTmpStatMat.Description];  % size [nMaps,1]
-        % Concatenate all fields in Options
-        optionsFields = fieldnames(sTmpStatMat.Options);
-        for iField = 1 : length(optionsFields)
-            if ~isfield(sStatMat.Options, optionsFields{iField})
-                sStatMat.Options.(optionsFields{iField}) = [];
+            sTmpStatMat = CorrelationSurfaceMaps(sInputsA(iInputA).FileName, MapFiles, MapsSurfaceFile, nSpins, 100 * (iMapSurfaceFile ./ length(MapsSurfaceFiles)));
+            bst_progress('inc', (iMapSurfaceFile ./ length(MapsSurfaceFiles)) * (iInputA ./ length(sInputsA)) );
+            % Concatenate fields (add results from other maps)
+            sStatMat.Time = sTmpStatMat.Time;
+            sStatMat.pmap =  [sStatMat.pmap; sTmpStatMat.pmap];                      % size [nMaps, nTime]
+            sStatMat.Description = [sStatMat.Description; sTmpStatMat.Description];  % size [nMaps,1]
+            % Concatenate all fields in Options
+            optionsFields = fieldnames(sTmpStatMat.Options);
+            for iField = 1 : length(optionsFields)
+                if ~isfield(sStatMat.Options, optionsFields{iField})
+                    sStatMat.Options.(optionsFields{iField}) = [];
+                end
+                sStatMat.Options.(optionsFields{iField}) = cat(1, sStatMat.Options.(optionsFields{iField}), sTmpStatMat.Options.(optionsFields{iField}));
             end
-            sStatMat.Options.(optionsFields{iField}) = cat(1, sStatMat.Options.(optionsFields{iField}), sTmpStatMat.Options.(optionsFields{iField}));
         end
         % Add history entry
-        sStatMat = bst_history('add', sStatMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputsA(iInputA).FileName));
+        sStatMat = bst_history('add', sStatMat, 'process', sprintf('Spatial correlation for %s: ', sInputsA(iInputA).FileName));
         % === SAVE FILE ===
         % Output filename
         sStudy = bst_get('Study', sInputsA(iInputA).iStudy);
