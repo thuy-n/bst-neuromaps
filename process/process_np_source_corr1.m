@@ -123,26 +123,25 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
         OutputFiles = [];
         return;
     end
+    MapsSurfaceFiles = repmat({MapsSurfaceFile}, length(MapFiles), 1);
     % Progress bar
     bst_progress('start', 'Processes', 'Computing spatial correlation...', 0, 100);
-    for iInput = 1 : length(sInputs)
-        % Update progress bar text
-        bst_progress('text', sprintf('Processing file #%d/%d', iInput, length(sInputs)));
+%     for iInput = 1 : length(sInputs)
+%         % Update progress bar
+%         bst_progress('text', sprintf('Processing file #%d/%d', iInput, length(sInputs)));
         % Compute correlations
-        sStatMat = process_np_source_corr2('CorrelationSurfaceMaps', sInputs(iInput).FileName, MapFiles, MapsSurfaceFile, nSpins, 100 * (iInput ./ length(sInputs)));
+        OutputFiles = process_np_source_corr2('CorrelationSurfaceMaps', {sInputs.FileName}, MapFiles, MapsSurfaceFiles, nSpins);
         % === SAVE FILE ===
-        % Add history entry
-        sStatMat = bst_history('add', sStatMat, 'process', sprintf('Brain map spatial correlation for %s: ', sInputs(iInput).FileName));
-        % Output filename
-        sStudy = bst_get('Study', sInputs(iInput).iStudy);
-        OutputFiles{end+1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'pmatrix_neuromaps');
-        % Save file
-        bst_save(OutputFiles{end}, sStatMat, 'v6');
-        % Register in database
-        db_add_data(sInputs(iInput).iStudy, OutputFiles{end}, sStatMat);
-        % Update progress bar
-        bst_progress('set', 100 * (iInput ./ length(sInputs)));
-    end
+%         % Output filename
+%         sStudy = bst_get('Study', sInputs(iInput).iStudy);
+%         OutputFiles{end+1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'pmatrix_neuromaps');
+%         % Save file
+%         bst_save(OutputFiles{end}, sStatMat, 'v6');
+%         % Register in database
+%         db_add_data(sInputs(iInput).iStudy, OutputFiles{end}, sStatMat);
+%         % Update progress bar
+%         bst_progress('set', 100 * (iInput ./ length(sInputs)));
+%     end
     % Update whole tree
     panel_protocols('UpdateTree');
 end
