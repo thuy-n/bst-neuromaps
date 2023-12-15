@@ -147,7 +147,7 @@ function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfa
     % Map comments
     mapComments = cell(nMaps, 1);
     % Track progress
-    infoStr = 'Spatial correlations... File: #%d/%d, Map: #%d/%d';
+    infoStr = 'Spatial correlations... File: %d/%d, Map: %d/%d';
     if nSpins > 0
         infoStr = [infoStr, ' Spin: %d/%d'];
     end
