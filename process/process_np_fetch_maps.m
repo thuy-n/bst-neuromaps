@@ -165,7 +165,11 @@ function [MapFiles, MapsSurfaceFiles] = PrepareNeuromap(space, mapComments)
     % Cortical surface with 15002 vertices (distributed in Brainstorm) MUST be the default one
     % This is because the maps in the bst-neuromaps were obtained for this surface
     % See the code `generate_bst_plugin_maps` of bst-neuromaps
-    ix = find(~cellfun(@isempty,(regexpi({sSubject.Surface.Comment}, '.*cortex_15002V'))));
+    ix = find(strcmp({sSubject.Surface.Comment}, 'cortex_15002V'));
+    if length(ix) > 1
+        bst_error('Subject "Neuromaps" has more than one cortical surface named "cortex_15002V"');
+        return
+    end
     if ~isequal(sSubject.iCortex, ix)
         sSubject = db_surface_default(iSubject, 'Cortex', ix, 1);
     end
