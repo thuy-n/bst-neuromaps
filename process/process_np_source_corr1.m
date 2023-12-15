@@ -90,7 +90,7 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
         brainmapsStr = sProcess.options.brainmaps_vol.Value;
     end
     % Load neuromaps plugin if needed
-    PlugDesc = bst_plugin('GetDescription', 'neuromaps');
+    PlugDesc = bst_plugin('GetInstalled', 'neuromaps');
     if ~PlugDesc.isLoaded
         bst_plugin('Load', 'neuromaps');
     end
