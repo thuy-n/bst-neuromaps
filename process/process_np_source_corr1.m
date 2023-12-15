@@ -79,10 +79,6 @@ end
 function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     OutputFiles = {};
     % Get options
-    nSpins = sProcess.options.nspins.Value{1};
-    if isempty(nSpins) || nSpins < 1
-        nSpins = 0;
-    end
     space = sProcess.options.sspace.Value;
     if strcmpi(space, 'surface')
         brainmapsStr = sProcess.options.brainmaps_srf.Value;
@@ -125,7 +121,7 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     end
 
     % Compute and save spatial correlations
-    OutputFiles = process_np_source_corr2('CorrelationSurfaceMaps', sInputs, MapFiles, MapsSurfaceFiles, nSpins, 1);
+    OutputFiles = process_np_source_corr2('CorrelationSurfaceMaps', sProcess, sInputs, MapFiles, MapsSurfaceFiles, 1);
 
     % Update whole tree
     panel_protocols('UpdateTree');

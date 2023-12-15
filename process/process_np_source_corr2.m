@@ -60,10 +60,7 @@ end
 %% ===== RUN =====
 function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     OutputFiles = {};
-    nSpins = sProcess.options.nspins.Value{1};
-    if isempty(nSpins) || nSpins < 1
-        nSpins = 0;
-    end
+
     % Load neuromaps plugin if needed
     PlugDesc = bst_plugin('GetInstalled', 'neuromaps');
     if ~PlugDesc.isLoaded
@@ -115,7 +112,7 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     end
 
     % Compute and save spatial correlations
-    OutputFiles = CorrelationSurfaceMaps(sInputsA, MapFiles, MapSurfaceFiles, nSpins, 1);
+    OutputFiles = CorrelationSurfaceMaps(sProcess, sInputsA, MapFiles, MapSurfaceFiles, 1);
 
     % Update whole tree
     panel_protocols('UpdateTree');
@@ -124,7 +121,7 @@ end
 %% ========================================================================
 %  ===== SUPPORT FUNCTIONS ================================================
 %  ========================================================================
-function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfaceFiles, nSpins, isInteractive)
+function OutputFiles = CorrelationSurfaceMaps(sProcess, sResultsInputs, MapFiles, MapSurfaceFiles, isInteractive)
     % Perform spatial correlations of N Source files and M Maps
     OutputFiles = {};
 
@@ -132,7 +129,8 @@ function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfa
     if nargin < 5 || isempty(isInteractive)
         isInteractive = 0;
     end
-    if nargin < 4 || isempty(nSpins) || nSpins < 0
+    nSpins = sProcess.options.nspins.Value{1};
+    if isempty(nSpins) || nSpins < 1
         nSpins = 0;
     end
     if ischar(MapFiles)
@@ -148,9 +146,15 @@ function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfa
     % Map comments
     mapComments = cell(nMaps, 1);
     % Track progress
-    infoStr = 'Spatial correlations... File: %d/%d, Map: %d/%d';
+    infoStr  = 'Spatial correlations... %s: %%d/%%d, %s: %%d/%%d';
+    switch func2str(sProcess.Function)
+        case 'process_np_source_corr1'
+            infoStr = sprintf(infoStr, 'File', 'Annotation');
+        case 'process_np_source_corr2'
+            infoStr = sprintf(infoStr, 'FileA', 'FileB');
+    end
     if nSpins > 0
-        infoStr = [infoStr, ' Spin: %d/%d'];
+        infoStr = [infoStr, ', Spin: %d/%d'];
     end
     if isInteractive
         bst_progress('start', 'Processes', 'Spatial correlations...', 0, 100);
@@ -227,7 +231,7 @@ function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfa
                 for iTimeA = 1 : length(TimesA)
                     % Not allow to correlate one sample source map with multiple samples source map
                     if isOneSampleA && ~isOneSampleMap
-                        bst_error(sprintf('Source file %s must be one time sample.', MapFiles{iMap}));
+                        bst_error(sprintf('Brain annotation file %s must be one time sample.', MapFiles{iMap}));
                         return
                     end
                     % Compute correlations for each sample point in InputA and its equivalent in Map
@@ -256,7 +260,7 @@ function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfa
                         % Spinning...
                         for iSpin = 1 : nSpins
                             if isInteractive
-                                bst_progress('text', sprintf('Spatial correlations... File: #%d/%d, Map: #%d/%d, Spin: %d/%d', iResultsInput, nResultsInputs, iMap, nMaps, iSpin, nSpins));
+                                bst_progress('text', sprintf(infoStr, iResultsInput, nResultsInputs, iMap, nMaps, iSpin, nSpins));
                                 bst_progress('inc', barStep);
                             else
                                 fprintf(1, [infoStr, '\n'], iResultsInput, nResultsInputs, iMap, nMaps, iSpin, nSpins);
@@ -393,6 +397,7 @@ function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfa
         db_add_data(iStudy, OutputFiles{end}, sStatMat);
     end
     if isInteractive
+        bst_progress('set', 100);
         bst_progress('stop');
     end
 end
