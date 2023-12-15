@@ -118,7 +118,7 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
 
     % Get Maps and their Surface
     [MapFiles, MapsSurfaceFiles] = process_np_fetch_maps('PrepareNeuromap', space, brainmaps);
-    if isempty(MapFiles) || isempty(MapsSurfaceFile)
+    if isempty(MapFiles) || isempty(MapsSurfaceFiles)
         bst_report('Error', sProcess, [], 'Could not find requested maps.');
         OutputFiles = [];
         return;
