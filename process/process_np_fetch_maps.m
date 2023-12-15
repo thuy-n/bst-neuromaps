@@ -114,9 +114,9 @@ end
 %% ========================================================================
 %  ===== SUPPORT FUNCTIONS ================================================
 %  ========================================================================
-function [MapFiles, MapSurfaceFile] = PrepareNeuromap(space, mapComments)
+function [MapFiles, MapsSurfaceFiles] = PrepareNeuromap(space, mapComments)
     MapFiles = {};
-    MapSurfaceFile = {};
+    MapsSurfaceFiles = {};
 
     mapInfos = repmat(struct('Comment',  '', ...
                              'Category', '', ...
@@ -207,6 +207,7 @@ function [MapFiles, MapSurfaceFile] = PrepareNeuromap(space, mapComments)
             MapFiles{iMap} = file_short(MapFile);
         end
     end
+    MapsSurfaceFiles = repmat({MapSurfaceFile}, length(MapFiles), 1);
 end
 
 function mapComments = GetBrainMapsList(space)
