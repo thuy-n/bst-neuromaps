@@ -311,7 +311,7 @@ function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfa
                 bst_progress('text', 'Spatial correlations... Delete temporary files');
             end
             % Delete Spin test surface from MapSurfaceSubject
-            if (file_delete(rotSrfFileFull, 1) == 1)
+            if nSpins > 0 && (file_delete(rotSrfFileFull, 1) == 1)
                 % Remove from database
                 ProtocolSubjects = bst_get('ProtocolSubjects');
                 if iSubjectMapSurface == 0
