@@ -85,7 +85,8 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     % FilesB must have the same time axis: TimesB
     for iInputB = 1 : length(sInputsB)
         sResultsMat = in_bst_results(sInputsB(iInputB).FileName, 0, 'Time');
-        if ~isequal(sResultsMat.Time, sResultsB1.Time)
+        if length(sResultsMat.Time) ~= length(sResultsB1.Time) || ...
+           (length(sResultsMat.Time) > 2 && ( abs(sResultsMat.Time(1) - sResultsB1.Time(1)) > 1e-5) || (abs(sResultsMat.Time(end) - sResultsB1.Time(end)) > 1e-5 ))
             bst_report('Error', sProcess, sInputsB(iInputB), 'Input files B must have the same time definition.');
             return;
         end
@@ -94,12 +95,12 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     % filesA (1 sample)  vs filesB (1 sample)   OK      1 Corr value
     % filesA (N samples) vs filesB (1 sample)   OK      N Corr values
     % filesA (N samples) vs filesB (N samples)  OK      N Corr values
+    % filesA (1 samples) vs filesB (N samples)  Not OK
     % filesA (M samples) vs filesB (N samples)  Not OK
     for iInputA = 1 : length(sInputsA)
         sResultsMat = in_bst_results(sInputsA(iInputA).FileName, 0, 'Time');
-        % FilesA must have the same time axis as TimesB
-        % TODO, better way to detect same time axis
-        if length(sResultsB1.Time) > 2 && (max(abs(sResultsMat.Time - sResultsB1.Time)) > diff(sResultsMat.Time(1:2)))
+        if length(sResultsMat.Time) ~= length(sResultsB1.Time) || ...
+           (length(sResultsMat.Time) > 2 && ( abs(sResultsMat.Time(1) - sResultsB1.Time(1)) > 1e-5) || (abs(sResultsMat.Time(end) - sResultsB1.Time(end)) > 1e-5 ))
             bst_report('Error', sProcess, sInputsA(iInputA), 'Input files A must have the same time axis as files B');
             return;
         end
