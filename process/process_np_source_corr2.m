@@ -113,17 +113,9 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
         MapSurfaceFiles{iInputB} = sResultsMat.SurfaceFile;
     end
 
-    % Progress bar
-    bst_progress('start', 'Processes', 'Computing spatial correlation...', 0, 100);
-    % For each FileA compute correlations with all FilesB
-    for iInputA = 1 : length(sInputsA)
-        % Update progress bar
-        bst_progress('text', sprintf('Processing file #%d/%d', iInputA, length(sInputsA)));
-        % Compute and save spatial correlations
-        OutputFiles = CorrelationSurfaceMaps(sInputsA(iInputA).FileName, MapFiles, MapSurfaceFiles, nSpins);
-        % Update progress bar
-        bst_progress('set', iInputA ./ length(sInputsA));
-    end
+    % Compute and save spatial correlations
+    OutputFiles = CorrelationSurfaceMaps(sInputsA, MapFiles, MapSurfaceFiles, nSpins, 1);
+
     % Update whole tree
     panel_protocols('UpdateTree');
 end
@@ -131,33 +123,61 @@ end
 %% ========================================================================
 %  ===== SUPPORT FUNCTIONS ================================================
 %  ========================================================================
-function OutputFiles = CorrelationSurfaceMaps(ResultsFiles, MapFiles, MapSurfaceFiles, nSpins)
+function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfaceFiles, nSpins, isInteractive)
     % Perform spatial correlations of N Source files and M Maps
-
     OutputFiles = {};
+
+    % Valida inputs
+    if nargin < 5 || isempty(isInteractive)
+        isInteractive = 0;
+    end
+    if nargin < 4 || isempty(nSpins) || nSpins < 0
+        nSpins = 0;
+    end
+    if ischar(MapFiles)
+        MapFiles = {MapFiles};
+    end
+    if ischar(MapSurfaceFiles)
+        MapSurfaceFiles = {MapSurfaceFiles};
+    end
+
+    nResultsInputs = length(sResultsInputs);
+    nMaps = length(MapFiles);
+
     % Map comments
-    mapComments = cell(length(MapFiles), 1);
+    mapComments = cell(nMaps, 1);
+    % Track progress
+    infoStr = 'Spatial correlations... File: #%d/%d, Map: #%d/%d';
+    if nSpins > 0
+        infoStr = [infoStr, ' Spin: %d/%d'];
+    end
+    if isInteractive
+        bst_progress('start', 'Processes', 'Spatial correlations...', 0, 100);
+        barStep = 100 ./ (nResultsInputs * nMaps);
+        if nSpins > 0
+            barStep = barStep ./ nSpins;
+        end
+    end
     % Compute and save spatial correlations for one source file
-    for iResultFile = 1 : length(ResultsFiles)
-        ResultsFile = ResultsFiles{iResultFile};
-        % Output study
-        [~, iStudy] = bst_get('ResultsFile', ResultsFile);
+    for iResultsInput = 1 : nResultsInputs
+        % Input file and input study
+        ResultsFile = sResultsInputs(iResultsInput).FileName;
+        iStudy = sResultsInputs(iResultsInput).iStudy;
         % Check time dimension for Sources (InputA)
         sResultsMat = in_bst_results(ResultsFile, 0, 'Time', 'SurfaceFile');
         TimesA = sResultsMat.Time;
         % Initialize stat values for MapSurface correlation and their p-values without spins
-        r_no_spin = zeros(length(MapFiles), length(TimesA));
-        p_no_spin = zeros(length(MapFiles), length(TimesA));
+        r_no_spin = zeros(nMaps, length(TimesA));
+        p_no_spin = zeros(nMaps, length(TimesA));
         % Correlation and their p-values for with spin test
-        r_spin_test = zeros(length(MapFiles), length(TimesA), nSpins);
-        p_spin_test = zeros(length(MapFiles), length(TimesA));
-
+        r_spin_test = zeros(nMaps, length(TimesA), nSpins);
+        p_spin_test = zeros(nMaps, length(TimesA));
         % Unique MapSurfaceFiles
         UniqueMapSurfaceFiles = unique(MapSurfaceFiles);
         for iUniqueSurfaceFile = 1 : length(UniqueMapSurfaceFiles)
             MapSurfaceFile = UniqueMapSurfaceFiles{iUniqueSurfaceFile};
-            % Backup previous tess2tess interpolation in MapSurface (if any) as Spin process will overwrite it
             if nSpins > 0
+                % Backup previous tess2tess interpolation in MapSurface (if any) as Spin process will overwrite it
                 sMapSrfMat = in_tess_bst(MapSurfaceFile);
                 MapTess2tessBackup = [];
                 if isfield(sMapSrfMat, 'tess2tess_interp') && all(isfield(sMapSrfMat.tess2tess_interp, {'Signature', 'Wmat'})) &&  ...
@@ -177,15 +197,26 @@ function OutputFiles = CorrelationSurfaceMaps(ResultsFiles, MapFiles, MapSurface
             end
             % Check if is one (time) sample
             isOneSampleA = length(TimesA) == 2 && isequal(sResultsProjMat.ImageGridAmp(:,1), sResultsProjMat.ImageGridAmp(:,2));
+            % Create SpinSurface from (MapSurface) if needed
+            if nSpins > 0
+                [sSubject, iSubjectMapSurface] = bst_get('SurfaceFile', MapSurfaceFile);
+                defSurfaceFile = sSubject.Surface(sSubject.iCortex).FileName;
+                % Load Surface and remove any saved previous tess2tess interpolation
+                % Because the registration sphere for the destination surface will change,
+                % thus the test2test_interp needs to be recomputed each spin
+                tmp.tess2tess_interp = [];
+                bst_save(file_fullpath(MapSurfaceFile), tmp, [], 1);
+                sMapSrfMat = in_tess_bst(MapSurfaceFile);
+                % Create a copy to the map surface, this copy will be the changing spinning surface
+                rotSrfFileFull = strrep(file_fullpath(MapSurfaceFile), '.mat', '_spin_test.mat');
+                copyfile(file_fullpath(MapSurfaceFile), rotSrfFileFull);
+                spnSrfFile = file_short(rotSrfFileFull);
+                iRotSrf = db_add_surface(iSubjectMapSurface, spnSrfFile, [sMapSrfMat.Comment, ' | Spin test']);
+            end
             % Indices of Maps using this Map Surface
             iMaps = find(strcmp(MapSurfaceFiles, MapSurfaceFile));
-            for im = 1 : length(iMaps)
+            for im = 1 : nMaps
                 iMap = iMaps(im);
-    %             if iMap == 1
-    %                 pBarParams = bst_progress('getbarparams');
-    %                 strBase = pBarParams.Msg;
-    %             end
-    %             bst_progress('text', [strBase, sprintf(', map #%d/%d', iMap, length(MapFiles))]);
                 % Load Map
                 sOrgMapMat = in_bst_results(MapFiles{iMap}, 1);
                 mapComments{iMap} = sOrgMapMat.Comment;
@@ -208,33 +239,29 @@ function OutputFiles = CorrelationSurfaceMaps(ResultsFiles, MapFiles, MapSurface
                     else
                         iTimeB = 1;
                     end
-                    % Spatial correlation with Map
+                    % Spatial correlation with (no spun) Map
+                    if nSpins == 0
+                        if isInteractive
+                            bst_progress('text', sprintf(infoStr, iResultsInput, nResultsInputs, iMap, nMaps));
+                            bst_progress('inc', barStep);
+                        else
+                            fprintf(1, [infoStr, '\n'], iResultsInput, nResultsInputs, iMap, nMaps);
+                        end
+                    end
                     [r_no_spin(iMap, iTimeA), p_no_spin(iMap, iTimeA)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeA)));
+
                     % Spatial correlations with spun Map
                     if nSpins > 0
-                        % String with backspaces
-    %                     bckstr = '';
-                        % Get Subject with MapSurface
-                        [sSubject, iSubject] = bst_get('SurfaceFile', MapSurfaceFile);
-                        defSurfaceFile = sSubject.Surface(sSubject.iCortex).FileName;
-                        % Load Surface and remove any saved previous tess2tess interpolation
-                        % Because the registration sphere for the destination surface will change,
-                        % thus the test2test_interp needs to be recomputed each spin
-                        sMapSrfMat = in_tess_bst(MapSurfaceFile);
-                        tmp.tess2tess_interp = [];
-                        bst_save(file_fullpath(MapSurfaceFile), tmp, [], 1);
-                        % Create a copy to the map surface, this copy will be the changing spinning surface
-                        rotSrfFileFull = strrep(file_fullpath(MapSurfaceFile), '.mat', '_spin_test.mat');
-                        copyfile(file_fullpath(MapSurfaceFile), rotSrfFileFull);
-                        spnSrfFile = file_short(rotSrfFileFull);
-                        iRotSrf = db_add_surface(iSubject, spnSrfFile, [sMapSrfMat.Comment, ' | Spin test']);
                         % Spinning...
                         for iSpin = 1 : nSpins
-                            % Print indicator of nSpin
-    %                         nbytes = fprintf('%sSpin: %d of %d\n', bckstr, iSpin, nSpins);
-    %                         bckstr = repmat(char(8), 1, nbytes - length(bckstr));
+                            if isInteractive
+                                bst_progress('text', sprintf('Spatial correlations... File: #%d/%d, Map: #%d/%d, Spin: %d/%d', iResultsInput, nResultsInputs, iMap, nMaps, iSpin, nSpins));
+                                bst_progress('inc', barStep);
+                            else
+                                fprintf(1, [infoStr, '\n'], iResultsInput, nResultsInputs, iMap, nMaps, iSpin, nSpins);
+                            end
                             % Rotate the registration spheres (L and R) in the original map surface, save it in the Spin test surface
-                            sSpnSurfMat = in_tess_bst(MapSurfaceFile);
+                            sSpnSurfMat = sMapSrfMat;
                             % Get vertex indices for each hemisphere
                             [ir, il] = tess_hemisplit(sSpnSurfMat);
                             % Get coordinates of sphere center (L and R)
@@ -274,26 +301,30 @@ function OutputFiles = CorrelationSurfaceMaps(ResultsFiles, MapFiles, MapSurface
                             % Spatial correlation with Map
                             r_spin_test(iMap, iTimeA, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeA)));
                         end
-                        % Delete Spin test surface
-                        if (file_delete(rotSrfFileFull, 1) == 1)
-                            % Remove from database
-                            ProtocolSubjects = bst_get('ProtocolSubjects');
-                            if iSubject == 0
-                                ProtocolSubjects.DefaultSubject.Surface(iRotSrf) = [];
-                            else
-                                ProtocolSubjects.Subject(iSubject).Surface(iRotSrf) = [];
-                            end
-                            bst_set('ProtocolSubjects', ProtocolSubjects);
-                            sSubject = bst_get('Subject', iSubject);
-                            % Restore default cortex
-                            ic = find(~cellfun(@isempty,(regexpi({sSubject.Surface.FileName}, defSurfaceFile))));
-                            if ~isequal(sSubject.iCortex, ic)
-                                db_surface_default(iSubject, 'Cortex', ic, 1);
-                            end
-                        end
                     end
                 end
-    %             bst_progress('inc', (iMap ./ length(MapFiles)) * valMapBar);
+            end
+
+            % === REMOVE TMP FILES ===
+            if isInteractive
+                bst_progress('text', 'Spatial correlations... Delete temporary files');
+            end
+            % Delete Spin test surface from MapSurfaceSubject
+            if (file_delete(rotSrfFileFull, 1) == 1)
+                % Remove from database
+                ProtocolSubjects = bst_get('ProtocolSubjects');
+                if iSubjectMapSurface == 0
+                    ProtocolSubjects.DefaultSubject.Surface(iRotSrf) = [];
+                else
+                    ProtocolSubjects.Subject(iSubjectMapSurface).Surface(iRotSrf) = [];
+                end
+                bst_set('ProtocolSubjects', ProtocolSubjects);
+                % Restore default cortex
+                sSubject = bst_get('Subject', iSubjectMapSurface);
+                ic = find(strcmp({sSubject.Surface.FileName}, defSurfaceFile));
+                if ~isequal(sSubject.iCortex, ic)
+                    db_surface_default(iSubjectMapSurface, 'Cortex', ic, 1);
+                end
             end
             % Restore original tess2tess interpolation in Map surface
             if (nSpins > 0) && ~isempty(MapTess2tessBackup)
@@ -312,6 +343,11 @@ function OutputFiles = CorrelationSurfaceMaps(ResultsFiles, MapFiles, MapSurface
                     db_delete_studies(iStudyProj);
                 end
             end
+        end
+
+        % === SAVE CORRELATION VALUES  ===
+        if isInteractive
+            bst_progress('text', 'Spatial correlations... Saving correlation values');
         end
         % Copy correlation values for second sample
         if isOneSampleA && isOneSampleMap
@@ -354,6 +390,9 @@ function OutputFiles = CorrelationSurfaceMaps(ResultsFiles, MapFiles, MapSurface
         bst_save(OutputFiles{end}, sStatMat, 'v6');
         % Register in database
         db_add_data(iStudy, OutputFiles{end}, sStatMat);
+    end
+    if isInteractive
+        bst_progress('stop');
     end
 end
 

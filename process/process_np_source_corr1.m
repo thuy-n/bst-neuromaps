@@ -117,31 +117,16 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     brainmaps = tmps;
 
     % Get Maps and their Surface
-    [MapFiles, MapsSurfaceFile] = process_np_fetch_maps('PrepareNeuromap', space, brainmaps);
+    [MapFiles, MapsSurfaceFiles] = process_np_fetch_maps('PrepareNeuromap', space, brainmaps);
     if isempty(MapFiles) || isempty(MapsSurfaceFile)
         bst_report('Error', sProcess, [], 'Could not find requested maps.');
         OutputFiles = [];
         return;
     end
-    MapsSurfaceFiles = repmat({MapsSurfaceFile}, length(MapFiles), 1);
-    % Progress bar
-    bst_progress('start', 'Processes', 'Computing spatial correlation...', 0, 100);
-%     for iInput = 1 : length(sInputs)
-%         % Update progress bar
-%         bst_progress('text', sprintf('Processing file #%d/%d', iInput, length(sInputs)));
-        % Compute correlations
-        OutputFiles = process_np_source_corr2('CorrelationSurfaceMaps', {sInputs.FileName}, MapFiles, MapsSurfaceFiles, nSpins);
-        % === SAVE FILE ===
-%         % Output filename
-%         sStudy = bst_get('Study', sInputs(iInput).iStudy);
-%         OutputFiles{end+1} = bst_process('GetNewFilename', bst_fileparts(sStudy.FileName), 'pmatrix_neuromaps');
-%         % Save file
-%         bst_save(OutputFiles{end}, sStatMat, 'v6');
-%         % Register in database
-%         db_add_data(sInputs(iInput).iStudy, OutputFiles{end}, sStatMat);
-%         % Update progress bar
-%         bst_progress('set', 100 * (iInput ./ length(sInputs)));
-%     end
+
+    % Compute and save spatial correlations
+    OutputFiles = process_np_source_corr2('CorrelationSurfaceMaps', sInputs, MapFiles, MapsSurfaceFiles, nSpins, 1);
+
     % Update whole tree
     panel_protocols('UpdateTree');
 end
