@@ -34,7 +34,7 @@ The reasons behind this implementation can be summarized in three main points:
   - FsAverage for surface maps- the default system used by the FreeSurfer software (164k vertices per hemisphere).
   - MNI152 for volumetric maps- 152 normative MRI scans developed by the Montreal Neurological Institute.
 - Flexible framework designed to accommodate future expansions and updates.
-- Repository of precomputed annotations sourced from the published literature for both volumetric and surface systems, ensuring accessibility and ease of use. All the information for these maps, including the appropriate citations to use can be found in [this spreadsheet](https://docs.google.com/spreadsheets/d/1R0usElQw1HCYaIGMpgJk-u3HcL6N1nQ1/edit?usp=sharing&ouid=114237437498686296895&rtpof=true&sd=true).
+- Repository of precomputed annotations sourced from the published literature for both volumetric and surface systems, ensuring accessibility and ease of use. All the information for these maps, including the appropriate citations to use can be found in [this spreadsheet]([https://mcgill-my.sharepoint.com/:x:/g/personal/le_thuy_nguyen_mail_mcgill_ca/EThdovlDN1tIiK85qmzBbZsBmON9MKwWSsBtgURTrDO5tg?e=8Uh9wE).
    - To obtain the surfaces, the original maps offered in MNI152 space were transformed to FsAverage using the registration fusion framework proposed in neuromaps ([Buckner et al., 2011](https://journals.physiology.org/doi/full/10.1152/jn.00339.2011); [Wu et al., 2018](https://onlinelibrary.wiley.com/doi/10.1002/hbm.24213)).
 - Correlation processes that account for spatial autocorrelation.
 
@@ -43,7 +43,7 @@ The reasons behind this implementation can be summarized in three main points:
 - Please cite the original conception of the neuromaps toolbox when using this plugin:
   > Markello, R.D., Hansen, J.Y., Liu, ZQ. et al. neuromaps: structural and functional interpretation of brain maps. Nat Methods 19, 1472–1479 (2022). [DOI: 10.1038/s41592-022-01625-w](https://doi.org/10.1038/s41592-022-01625-w).
     
-- If you used any of the included maps, please cite the original papers that publish the data. References for each map can be found in [the spreadsheet](https://docs.google.com/spreadsheets/d/1R0usElQw1HCYaIGMpgJk-u3HcL6N1nQ1/edit?usp=sharing&ouid=114237437498686296895&rtpof=true&sd=true).
+- If you used any of the included maps, please cite the original papers that publish the data. References for each map can be found in [the spreadsheet](https://mcgill-my.sharepoint.com/:x:/g/personal/le_thuy_nguyen_mail_mcgill_ca/EThdovlDN1tIiK85qmzBbZsBmON9MKwWSsBtgURTrDO5tg?e=8Uh9wE).
 
 - If you used the surface maps which were transformed using the registration fusion framework, please also cite:
   > Wu, J. et al. Accurate nonlinear mapping between MNI volumetric and FreeSurfer surface coordinate systems. Hum. Brain Mapp. 39, 3793–3808 (2018). [DOI: 10.1002/hbm.24213](https://doi.org/10.1002/hbm.24213).
