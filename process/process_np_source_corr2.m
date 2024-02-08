@@ -19,7 +19,7 @@ function varargout = process_np_source_corr2( varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Raymundo Cassani 2023
+% Authors: Raymundo Cassani 2023-2024
 
 eval(macro_method);
 end
@@ -226,45 +226,34 @@ function OutputFiles = CorrelationSurfaceMaps(sProcess, sResultsInputs, MapFiles
                 sOrgMapMat = in_bst_results(MapFiles{iMap}, 1);
                 mapComments{iMap} = sOrgMapMat.Comment;
                 % Check if Map is one time sample
-                isOneSampleMap = length(sOrgMapMat.Time) == 2 && isequal(sOrgMapMat.ImageGridAmp(:,1), sOrgMapMat.ImageGridAmp(:,2));
-                % Comptue correlation for each sample in InputA
-                for iTimeA = 1 : length(TimesA)
-                    % Not allow to correlate one sample source map with multiple samples source map
-                    if isOneSampleA && ~isOneSampleMap
-                        bst_error(sprintf('Brain annotation file %s must be one time sample.', MapFiles{iMap}));
-                        return
-                    end
-                    % Compute correlations for each sample point in InputA and its equivalent in Map
-                    if length(TimesA) == length(sOrgMapMat.Time)
-                        iTimeB = iTimeA;
-                        if isOneSampleA && isOneSampleMap && iTimeA == 2
+                TimesB = sOrgMapMat.Time;
+                isOneSampleMap = length(TimesB) == 2 && isequal(sOrgMapMat.ImageGridAmp(:,1), sOrgMapMat.ImageGridAmp(:,2));
+                % Not allow to correlate one sample source map with multiple samples source map
+                if isOneSampleA && ~isOneSampleMap
+                    bst_error(sprintf('Brain annotation file %s must be one time sample.', MapFiles{iMap}));
+                    return
+                end
+                % Spatial correlations, start with 0, as this is for no spin
+                for iSpin = 0 : nSpins
+                    for iTimeB = 1 : length(TimesB)
+                        % Avoid recompute spatial correlation if one-time-sample B
+                        if isOneSampleMap && iTimeB == 2
                             continue
                         end
-                    % Compute correlations for each sample point in InputA and sample 1 in Map
-                    else
-                        iTimeB = 1;
-                    end
-                    % Spatial correlation with (no spun) Map
-                    if nSpins == 0
-                        if isInteractive
-                            bst_progress('text', sprintf(infoStr, iResultsInput, nResultsInputs, iMap, nMaps));
-                            bst_progress('inc', barStep);
-                        else
-                            fprintf(1, [infoStr, '\n'], iResultsInput, nResultsInputs, iMap, nMaps);
-                        end
-                    end
-                    [r_no_spin(iMap, iTimeA), p_no_spin(iMap, iTimeA)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeA)));
 
-                    % Spatial correlations with spun Map
-                    if nSpins > 0
-                        % Spinning...
-                        for iSpin = 1 : nSpins
-                            if isInteractive
-                                bst_progress('text', sprintf(infoStr, iResultsInput, nResultsInputs, iMap, nMaps, iSpin, nSpins));
-                                bst_progress('inc', barStep);
+                        % Spatial correlation for witn not spun map
+                        if iSpin == 0
+                            % Spatial correlation of all time samples in A with the one-time-sample B
+                            if isOneSampleMap
+                                [r_no_spin(iMap, :), p_no_spin(iMap, :)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp));
+                            % Spatial correlation of one time sample in A with the same time sample in B
                             else
-                                fprintf(1, [infoStr, '\n'], iResultsInput, nResultsInputs, iMap, nMaps, iSpin, nSpins);
+                                [r_no_spin(iMap, iTimeB), p_no_spin(iMap, iTimeB)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
                             end
+
+                        % Spatial correlations with spun Map
+                        else
+                            % Spinning...
                             % Rotate the registration spheres (L and R) in the original map surface, save it in the Spin test surface
                             sSpnSurfMat = sMapSrfMat;
                             % Get vertex indices for each hemisphere
@@ -304,7 +293,30 @@ function OutputFiles = CorrelationSurfaceMaps(sProcess, sResultsInputs, MapFiles
                             % Interpolation for 1 component
                             spnImageGridAmp = double(WmatSurf * sOrgMapMat.ImageGridAmp);
                             % Spatial correlation with Map
-                            r_spin_test(iMap, iTimeA, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeA)));
+                            if isOneSampleMap
+                                r_spin_test(iMap, :, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp));
+                                %[r_no_spin(iMap, :), p_no_spin(iMap, :)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp));
+                            else
+                                r_spin_test(iMap, iTimeB, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
+                                %[r_no_spin(iMap, iTimeB), p_no_spin(iMap, iTimeB)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
+                            end
+                            %r_spin_test(iMap, iTimeA, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeA)));
+                        end
+                    end
+                    % Process indicator
+                    if isInteractive
+                        if nSpins == 0
+                            bst_progress('text', sprintf(infoStr, iResultsInput, nResultsInputs, iMap, nMaps));
+                            bst_progress('inc', barStep);
+                        elseif nSpins > 1 && iSpin > 0
+                            bst_progress('text', sprintf(infoStr, iResultsInput, nResultsInputs, iMap, nMaps, iSpin, nSpins));
+                            bst_progress('inc', barStep);
+                        end
+                    else
+                        if nSpins == 0
+                            fprintf(1, [infoStr, '\n'], iResultsInput, nResultsInputs, iMap, nMaps);
+                        elseif nSpins > 1 && iSpin > 0
+                            fprintf(1, [infoStr, '\n'], iResultsInput, nResultsInputs, iMap, nMaps, iSpin, nSpins);
                         end
                     end
                 end
@@ -353,12 +365,6 @@ function OutputFiles = CorrelationSurfaceMaps(sProcess, sResultsInputs, MapFiles
         % === SAVE CORRELATION VALUES  ===
         if isInteractive
             bst_progress('text', 'Spatial correlations... Saving correlation values');
-        end
-        % Copy correlation values for second sample
-        if isOneSampleA && isOneSampleMap
-            r_no_spin(:,2)     = r_no_spin(:,1);
-            p_no_spin(:,2)     = p_no_spin(:,1);
-            r_spin_test(:,2,:) = r_spin_test(:,1,:);
         end
         % Compute p-values for spin test
         if nSpins > 0
