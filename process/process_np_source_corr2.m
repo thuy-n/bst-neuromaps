@@ -96,8 +96,7 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     % filesA (M samples) vs filesB (N samples)  Not OK
     for iInputA = 1 : length(sInputsA)
         sResultsMat = in_bst_results(sInputsA(iInputA).FileName, 0, 'Time');
-        if length(sResultsMat.Time) ~= length(sResultsB1.Time) || ...
-           (length(sResultsMat.Time) > 2 && ( abs(sResultsMat.Time(1) - sResultsB1.Time(1)) > 1e-5) || (abs(sResultsMat.Time(end) - sResultsB1.Time(end)) > 1e-5 ))
+        if length(sResultsB1.Time) > 2 && ((abs(sResultsMat.Time(1) - sResultsB1.Time(1)) > 1e-5) || (abs(sResultsMat.Time(end) - sResultsB1.Time(end)) > 1e-5 ))
             bst_report('Error', sProcess, sInputsA(iInputA), 'Input files A must have the same time axis as files B');
             return;
         end
