@@ -377,15 +377,16 @@ function OutputFiles = CorrelationSurfaceMaps(sProcess, sResultsInputs, MapFiles
             sStatMat.Comment = [sStatMat.Comment, ' | spintest'];
         end
         sStatMat.Time = TimesA;
-        sStatMat.Description = mapComments;             % [nMaps,1]
-        sStatMat.tmap        = r_no_spin;               % [nMaps, nTimes]
-        if nSpins > 0
-            sStatMat.Options.nSpins      = nSpins;
-            sStatMat.pmap                = p_spin_test; % [nMaps, nTimes]
-            sStatMat.Options.rSpinTest   = r_spin_test; % [nMaps, nTimes, nSpins]
-            sStatMat.Options.pNoSpinTest = p_no_spin;   % [nMaps, nTimes]
-        else
-            sStatMat.pmap    = p_no_spin;               % [nMaps, nTimes]
+        sStatMat.Description = mapComments;         % [nMaps,1]
+        sStatMat.tmap        = r_no_spin;           % [nMaps, nTimes]
+        % Save correlation results data
+        sStatMat.Options.nSpins      = nSpins;
+        sStatMat.pmap                = p_spin_test; % [nMaps, nTimes]
+        sStatMat.Options.rSpinTest   = r_spin_test; % [nMaps, nTimes, nSpins]
+        sStatMat.Options.pNoSpinTest = p_no_spin;   % [nMaps, nTimes]
+        if nSpins == 0
+            sStatMat.pmap              = p_no_spin; % [nMaps, nTimes]
+            sStatMat.Options.rSpinTest = [];        % Empty
         end
         sStatMat.Correction   = 'no';
         sStatMat.ChannelFlag  = [];
