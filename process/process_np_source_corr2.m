@@ -238,71 +238,69 @@ function OutputFiles = CorrelationSurfaceMaps(sProcess, sResultsInputs, MapFiles
                 end
                 % Spatial correlations, start with 0, as this is for no spin
                 for iSpin = 0 : nSpins
-                    for iTimeB = 1 : length(TimesB)
-                        % Avoid recompute spatial correlation if one-time-sample B
-                        if isOneSampleMap && iTimeB == 2
-                            continue
-                        end
-
-                        % Spatial correlation for witn not spun map
-                        if iSpin == 0
-                            % Spatial correlation of all time samples in A with the one-time-sample B
-                            if isOneSampleMap
-                                [r_no_spin(ixMap, :), p_no_spin(ixMap, :)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp));
-                            % Spatial correlation of one time sample in A with the same time sample in B
-                            else
+                    % Spatial correlation for witn not spun map
+                    if iSpin == 0
+                        % Spatial correlation of all time samples in A with the one-time-sample B
+                        if isOneSampleMap
+                            [r_no_spin(ixMap, :), p_no_spin(ixMap, :)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,1)), transpose(sResultsProjMat.ImageGridAmp));
+                        % Spatial correlation of one time sample in A with the same time sample in B
+                        else
+                            for iTimeB = 1 : length(TimesB)
                                 [r_no_spin(ixMap, iTimeB), p_no_spin(ixMap, iTimeB)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
                             end
+                        end
 
-                        % Spatial correlations with spun Map
+                    % Spatial correlations with spun Map
+                    else
+                        % Spinning...
+                        % Rotate the registration spheres (L and R) in the original map surface, save it in the Spin test surface
+                        sSpnSurfMat = sMapSrfMat;
+                        % Get vertex indices for each hemisphere
+                        [ir, il] = tess_hemisplit(sSpnSurfMat);
+                        % Get coordinates of sphere center (L and R)
+                        offset_coordinatesL= (max(sSpnSurfMat.Reg.Sphere.Vertices(il,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(il,:)))/2;
+                        offset_coordinatesR= (max(sSpnSurfMat.Reg.Sphere.Vertices(ir,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(ir,:)))/2;
+                        % Alexander-Bloch method applied opposite rotations over the X and Z axes (SCS coords)
+                        % https://doi.org/10.1016/j.neuroimage.2018.05.070
+                        I1 = eye(3,3);
+                        I1(1,1)=-1;
+                        % Random uniform sampling procedure, get rotation matrices TL and TR (for each sphere)
+                        A = normrnd(0,1,3,3);
+                        [TL, temp] = qr(A);
+                        TL = TL * diag(sign(diag(temp)));
+                        if(det(TL)<0)
+                            TL(:,1) = -TL(:,1);
+                        end
+                        % Reflect across the X-Z plane (SCS coords) for right hemisphere
+                        TR = I1 * TL * I1;
+                        % Rotate spheres
+                        sSpnSurfMat.Reg.Sphere.Vertices(il,:)= sSpnSurfMat.Reg.Sphere.Vertices(il,:) * TL;
+                        sSpnSurfMat.Reg.Sphere.Vertices(ir,:)= sSpnSurfMat.Reg.Sphere.Vertices(ir,:) * TR;
+                        % Get coordinates for new sphere center (L and R)
+                        offset_coordinatesL2= (max(sSpnSurfMat.Reg.Sphere.Vertices(il,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(il,:)))/2;
+                        offset_coordinatesR2= (max(sSpnSurfMat.Reg.Sphere.Vertices(ir,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(ir,:)))/2;
+                        % Recenter new sphere to old sphere center (L and R)
+                        sSpnSurfMat.Reg.Sphere.Vertices(il,:) = sSpnSurfMat.Reg.Sphere.Vertices(il,:)-offset_coordinatesL2 +offset_coordinatesL;
+                        sSpnSurfMat.Reg.Sphere.Vertices(ir,:) = sSpnSurfMat.Reg.Sphere.Vertices(ir,:)-offset_coordinatesR2 +offset_coordinatesR;
+                        % Update spin surface file
+                        bst_save(file_fullpath(spnSrfFile), sSpnSurfMat);
+                        % Project map from original surface to spun surface
+                        WmatSurf = tess_interp_tess2tess(MapSurfaceFile, spnSrfFile, 0, 0);
+                        % Need to clean tess2tess interpolation
+                        tmp.tess2tess_interp = [];
+                        bst_save(file_fullpath(MapSurfaceFile), tmp, [], 1);
+                        % Interpolation for 1 component
+                        spnImageGridAmp = double(WmatSurf * sOrgMapMat.ImageGridAmp);
+                        % Spatial correlation with Map
+                        if isOneSampleMap
+                            r_spin_test(ixMap, :, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,1)), transpose(sResultsProjMat.ImageGridAmp));
                         else
-                            % Spinning...
-                            % Rotate the registration spheres (L and R) in the original map surface, save it in the Spin test surface
-                            sSpnSurfMat = sMapSrfMat;
-                            % Get vertex indices for each hemisphere
-                            [ir, il] = tess_hemisplit(sSpnSurfMat);
-                            % Get coordinates of sphere center (L and R)
-                            offset_coordinatesL= (max(sSpnSurfMat.Reg.Sphere.Vertices(il,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(il,:)))/2;
-                            offset_coordinatesR= (max(sSpnSurfMat.Reg.Sphere.Vertices(ir,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(ir,:)))/2;
-                            % Alexander-Bloch method applied opposite rotations over the X and Z axes (SCS coords)
-                            % https://doi.org/10.1016/j.neuroimage.2018.05.070
-                            I1 = eye(3,3);
-                            I1(1,1)=-1;
-                            % Random uniform sampling procedure, get rotation matrices TL and TR (for each sphere)
-                            A = normrnd(0,1,3,3);
-                            [TL, temp] = qr(A);
-                            TL = TL * diag(sign(diag(temp)));
-                            if(det(TL)<0)
-                                TL(:,1) = -TL(:,1);
-                            end
-                            % Reflect across the X-Z plane (SCS coords) for right hemisphere
-                            TR = I1 * TL * I1;
-                            % Rotate spheres
-                            sSpnSurfMat.Reg.Sphere.Vertices(il,:)= sSpnSurfMat.Reg.Sphere.Vertices(il,:) * TL;
-                            sSpnSurfMat.Reg.Sphere.Vertices(ir,:)= sSpnSurfMat.Reg.Sphere.Vertices(ir,:) * TR;
-                            % Get coordinates for new sphere center (L and R)
-                            offset_coordinatesL2= (max(sSpnSurfMat.Reg.Sphere.Vertices(il,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(il,:)))/2;
-                            offset_coordinatesR2= (max(sSpnSurfMat.Reg.Sphere.Vertices(ir,:))+min(sSpnSurfMat.Reg.Sphere.Vertices(ir,:)))/2;
-                            % Recenter new sphere to old sphere center (L and R)
-                            sSpnSurfMat.Reg.Sphere.Vertices(il,:) = sSpnSurfMat.Reg.Sphere.Vertices(il,:)-offset_coordinatesL2 +offset_coordinatesL;
-                            sSpnSurfMat.Reg.Sphere.Vertices(ir,:) = sSpnSurfMat.Reg.Sphere.Vertices(ir,:)-offset_coordinatesR2 +offset_coordinatesR;
-                            % Update spin surface file
-                            bst_save(file_fullpath(spnSrfFile), sSpnSurfMat);
-                            % Project map from original surface to spun surface
-                            WmatSurf = tess_interp_tess2tess(MapSurfaceFile, spnSrfFile, 0, 0);
-                            % Need to clean tess2tess interpolation
-                            tmp.tess2tess_interp = [];
-                            bst_save(file_fullpath(MapSurfaceFile), tmp, [], 1);
-                            % Interpolation for 1 component
-                            spnImageGridAmp = double(WmatSurf * sOrgMapMat.ImageGridAmp);
-                            % Spatial correlation with Map
-                            if isOneSampleMap
-                                r_spin_test(ixMap, :, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp));
-                            else
+                            for iTimeB = 1 : length(TimesB)
                                 r_spin_test(ixMap, iTimeB, iSpin) = bst_corrn(transpose(spnImageGridAmp(:,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(:,iTimeB)));
                             end
                         end
                     end
+
                     % Process indicator
                     if isInteractive
                         if nSpins == 0
