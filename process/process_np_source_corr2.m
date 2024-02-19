@@ -383,6 +383,7 @@ function OutputFiles = CorrelationSurfaceMaps(sProcess, sResultsInputs, MapFiles
         sStatMat.Description = mapComments;         % [nMaps,1]
         sStatMat.tmap        = r_no_spin;           % [nMaps, nTimes]
         % Save correlation results data
+        sStatMat.Options.Maps        = MapFiles;
         sStatMat.Options.nSpins      = nSpins;
         sStatMat.pmap                = p_spin_test; % [nMaps, nTimes]
         sStatMat.Options.rSpinTest   = r_spin_test; % [nMaps, nTimes, nSpins]
