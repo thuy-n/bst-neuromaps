@@ -41,8 +41,8 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.nInputs     = 1;
     sProcess.nMinFiles   = 0;
     % === DESCRIPTION
-    sProcess.options.help.Comment = ['This process computes Pearson''s correlation coefficient between <BR>' ...
-                                     'a surface source file and a brain map<BR>'];
+    sProcess.options.help.Comment = ['This process imports selected brain annotations from our curated <BR>' ...
+                                     'repository of precomputed reference maps.<BR>'];
     sProcess.options.help.Type    = 'label';
     % === SOURCE SPACE
     sProcess.options.sspace.Comment    = {'Surface', 'Volume', '<B>Source space:</B>'; ...
