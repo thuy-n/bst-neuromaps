@@ -35,14 +35,15 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.Category    = 'Custom';
     sProcess.SubGroup    = 'Sources';
     sProcess.Index       = 601;
+    sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/Tutorials/Neuromaps';
     % Definition of the input accepted by this process
     sProcess.InputTypes  = {'results'};
     sProcess.OutputTypes = {'matrix'};
     sProcess.nInputs     = 1;
     sProcess.nMinFiles   = 1;
     % === DESCRIPTION
-    sProcess.options.help.Comment = ['This process computes Pearson''s correlation coefficient between <BR>' ...
-                                     'a surface source file and a brain map<BR>'];
+    sProcess.options.help.Comment = ['Spatial comparison between: <BR>' ...
+                                     'Each file and selected brain annotations<BR>'];
     sProcess.options.help.Type    = 'label';
     % === SOURCE SPACE
     sProcess.options.sspace.Comment    = {'Surface', 'Volume', '<B>Source space:</B>'; ...
