@@ -42,10 +42,12 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.help.Comment = ['Spatial comparison between: <BR>' ...
                                      'Each file in <B>FilesA</B> and all files in <B>FilesB</B><BR>'];
     sProcess.options.help.Type    = 'label';
-    % === METRIC, CORRECTION
-
+    % === METRIC
+    sProcess.options.corrmetric.Comment = {'Pearson corr', 'Spearman corr', 'Comparison metric:'; 'Pearson', 'Spearman', ''};
+    sProcess.options.corrmetric.Type    = 'radio_linelabel';
+    sProcess.options.corrmetric.Value   = 'Pearson';
     % === REMOVE ZEROS
-    sProcess.options.removezeros.Comment = 'Ignore zeros when computing correlation (default=True)';
+    sProcess.options.removezeros.Comment = 'Ignore zeros when computing comparison (default=True)';
     sProcess.options.removezeros.Type    = 'checkbox';
     sProcess.options.removezeros.Value   = 1;
     % === SPIN TEST
@@ -69,6 +71,7 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     nSpins      = sProcess.options.nspins.Value{1};
     removeZeros = sProcess.options.removezeros.Value;
     processTab  = 2;
+    corrMethod  = sProcess.options.corrmetric.Value;
 
     % Load neuromaps plugin if needed
     PlugDesc = bst_plugin('GetInstalled', 'neuromaps');
@@ -120,7 +123,7 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     end
 
     % Compute and save spatial correlations
-    OutputFiles = CorrelationSurfaceMaps(sInputsA, MapFiles, MapSurfaceFiles, removeZeros, nSpins, processTab, 1);
+    OutputFiles = CorrelationSurfaceMaps(sInputsA, MapFiles, MapSurfaceFiles, removeZeros, nSpins, corrMethod, processTab, 1);
 
     % Update whole tree
     panel_protocols('UpdateTree');
@@ -129,16 +132,19 @@ end
 %% ========================================================================
 %  ===== SUPPORT FUNCTIONS ================================================
 %  ========================================================================
-function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfaceFiles, RemoveZeros, nSpins, ProcessTab, isInteractive)
+function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfaceFiles, RemoveZeros, nSpins, CorrMethod, ProcessTab, isInteractive)
     % Perform spatial correlations of N Source files and M Maps
     OutputFiles = {};
 
     % Valida inputs
-    if nargin < 7 || isempty(isInteractive)
+    if nargin < 8 || isempty(isInteractive)
         isInteractive = 0;
     end
-    if nargin < 6 || isempty(ProcessTab)
+    if nargin < 7 || isempty(ProcessTab)
         ProcessTab = 2;
+    end
+    if nargin < 6|| isempty(CorrMethod)
+        CorrMethod = 'Pearson';
     end
     if nargin < 5 || isempty(nSpins) || nSpins < 1
         nSpins = 0;
@@ -277,11 +283,11 @@ function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfa
                         maskValid = and(maskA, maskB);
                         % Spatial correlation of all time samples in A with the one-time-sample B
                         if isOneSampleMap
-                            [r_no_spin(ixMap, :), p_no_spin(ixMap, :)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(maskValid,1)), transpose(sResultsProjMat.ImageGridAmp(maskValid, :)));
+                            [r_no_spin(ixMap, :), p_no_spin(ixMap, :)] = corr(sOrgMapMat.ImageGridAmp(maskValid,1), sResultsProjMat.ImageGridAmp(maskValid, :), 'Type', CorrMethod);
                         % Spatial correlation of one time sample in A with the same time sample in B
                         else
                             for iTimeB = 1 : length(TimesB)
-                                [r_no_spin(ixMap, iTimeB), p_no_spin(ixMap, iTimeB)] = bst_corrn(transpose(sOrgMapMat.ImageGridAmp(maskValid,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(maskValid,iTimeB)));
+                                [r_no_spin(ixMap, iTimeB), p_no_spin(ixMap, iTimeB)] = corr(sOrgMapMat.ImageGridAmp(maskValid,iTimeB), sResultsProjMat.ImageGridAmp(maskValid,iTimeB), 'Type', CorrMethod);
                             end
                         end
 
@@ -338,10 +344,10 @@ function OutputFiles = CorrelationSurfaceMaps(sResultsInputs, MapFiles, MapSurfa
                         maskValid = or(maskA, maskB);
                         % Spatial correlation with Map
                         if isOneSampleMap
-                            r_spin_test(ixMap, :, iSpin) = bst_corrn(transpose(spnImageGridAmp(maskValid,1)), transpose(sResultsProjMat.ImageGridAmp(maskValid, :)));
+                            r_spin_test(ixMap, :, iSpin) = corr(spnImageGridAmp(maskValid,1), sResultsProjMat.ImageGridAmp(maskValid, :), 'Type', CorrMethod);
                         else
                             for iTimeB = 1 : length(TimesB)
-                                r_spin_test(ixMap, iTimeB, iSpin) = bst_corrn(transpose(spnImageGridAmp(maskValid,iTimeB)), transpose(sResultsProjMat.ImageGridAmp(maskValid,iTimeB)));
+                                r_spin_test(ixMap, iTimeB, iSpin) = corr(spnImageGridAmp(maskValid,iTimeB), sResultsProjMat.ImageGridAmp(maskValid,iTimeB), 'Type', CorrMethod);
                             end
                         end
                     end

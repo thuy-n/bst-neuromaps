@@ -61,8 +61,10 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.brainmaps_vol.Type    = 'textarea';
     sProcess.options.brainmaps_vol.Value   = strjoin(brainmapListVol, char(10)); % Add checkbox to select all?
     sProcess.options.brainmaps_vol.Class   = 'volume';
-    % === METRIC, CORRECTION
-
+    % === METRIC
+    sProcess.options.corrmetric.Comment = {'Pearson corr', 'Spearman corr', 'Comparison metric:'; 'Pearson', 'Spearman', ''};
+    sProcess.options.corrmetric.Type    = 'radio_linelabel';
+    sProcess.options.corrmetric.Value   = 'Pearson';
     % === REMOVE ZEROS
     sProcess.options.removezeros.Comment = 'Ignore zeros when computing correlation (default=True)';
     sProcess.options.removezeros.Type    = 'checkbox';
@@ -93,6 +95,8 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     nSpins      = sProcess.options.nspins.Value{1};
     removeZeros = sProcess.options.removezeros.Value;
     processTab  = 1;
+    corrMethod  = sProcess.options.corrmetric.Value;
+
 
     % Load neuromaps plugin if needed
     PlugDesc = bst_plugin('GetInstalled', 'neuromaps');
@@ -130,7 +134,7 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     end
 
     % Compute and save spatial correlations
-    OutputFiles = process_np_source_corr2('CorrelationSurfaceMaps', sInputs, MapFiles, MapsSurfaceFiles, removeZeros, nSpins, processTab, 1);
+    OutputFiles = process_np_source_corr2('CorrelationSurfaceMaps', sInputs, MapFiles, MapsSurfaceFiles, removeZeros, nSpins, corrMethod, processTab, 1);
 
     % Update whole tree
     panel_protocols('UpdateTree');
