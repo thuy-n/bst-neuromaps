@@ -62,6 +62,10 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.brainmaps_vol.Class   = 'volume';
     % === METRIC, CORRECTION
 
+    % === REMOVE ZEROS
+    sProcess.options.removezeros.Comment = 'Ignore zeros when computing correlation (default=True)';
+    sProcess.options.removezeros.Type    = 'checkbox';
+    sProcess.options.removezeros.Value   = 1;
     % === SPIN TEST
     sProcess.options.nspins.Comment = 'Number of spins for spin test (0 = no spin test): ';
     sProcess.options.nspins.Type    = 'value';
@@ -85,6 +89,10 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     elseif strcmpi(space, 'volume')
         brainmapsStr = sProcess.options.brainmaps_vol.Value;
     end
+    nSpins      = sProcess.options.nspins.Value{1};
+    removeZeros = sProcess.options.removezeros.Value;
+    processTab  = 1;
+
     % Load neuromaps plugin if needed
     PlugDesc = bst_plugin('GetInstalled', 'neuromaps');
     if ~PlugDesc.isLoaded
@@ -121,7 +129,7 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     end
 
     % Compute and save spatial correlations
-    OutputFiles = process_np_source_corr2('CorrelationSurfaceMaps', sProcess, sInputs, MapFiles, MapsSurfaceFiles, 1);
+    OutputFiles = process_np_source_corr2('CorrelationSurfaceMaps', sInputs, MapFiles, MapsSurfaceFiles, removeZeros, nSpins, processTab, 1);
 
     % Update whole tree
     panel_protocols('UpdateTree');
