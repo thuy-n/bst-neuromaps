@@ -143,12 +143,12 @@ end
 function mapComments = GetBrainMapsList(space)
     % Brain map Comments from brain FileNames in bst_neuromaps Plugin
     % Find all Brainstorm source files
-    mapFiles = dir(fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', space,  '**/*_sources.mat'));
-    mapComments = {};
+    plugDesc = bst_plugin('GetInstalled', 'neuromaps');
+    mapFiles = dir(fullfile(plugDesc.Path, plugDesc.SubFolder,  'maps', space,  '**/*_sources.mat'));
+    mapComments = cell(length(mapFiles), 1);
     for iMap = 1 : length(mapFiles)
-        % Go from filename to comment
-        mapComments{end+1} = regexprep(mapFiles(iMap).name, ['^results_', space, '_'], '');
-        mapComments{end}   = regexprep(mapComments{end}, '_sources.mat$', '');
-        mapComments{end}   = regexprep(mapComments{end}, '__', ': ');
+        % Get comment from file content
+        tmp = load(fullfile(mapFiles(iMap).folder, mapFiles(iMap).name), 'Comment');
+        mapComments{iMap} = tmp.Comment;
     end
 end
