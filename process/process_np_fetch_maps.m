@@ -51,16 +51,15 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.sspace.Value      = 'surface';
     sProcess.options.sspace.Controller = struct('surface', 'surface', 'volume', 'volume');
     sProcess.options.sspace.Hidden     = 1;
-    % TODO: Update to GUI Lists
     % === SURFACE BRAIN MAPS
-    sProcess.options.brainmaps_srf.Comment = 'Brain annotations from Neuromaps (will be a list)';
-    sProcess.options.brainmaps_srf.Type    = 'textarea';
-    sProcess.options.brainmaps_srf.Value   = strjoin(brainmapListSrf, char(10)); % Add checkbox to select all?
+    sProcess.options.brainmaps_srf.Comment = [brainmapListSrf, {'Brain annotations from Neuromaps'}];
+    sProcess.options.brainmaps_srf.Type    = 'list_vertical';
+    sProcess.options.brainmaps_srf.Value   = '';
     sProcess.options.brainmaps_srf.Class   = 'surface';
     % === VOLUME BRAIN MAPS
-    sProcess.options.brainmaps_vol.Comment = 'Brain annotations from Neuromaps (will be a list)';
-    sProcess.options.brainmaps_vol.Type    = 'textarea';
-    sProcess.options.brainmaps_vol.Value   = strjoin(brainmapListSrf, char(10)); % Add checkbox to select all?
+    sProcess.options.brainmaps_vol.Comment = [brainmapListVol, {'Brain annotations from Neuromaps'}];
+    sProcess.options.brainmaps_vol.Type    = 'list_vertical';
+    sProcess.options.brainmaps_vol.Value   = '';
     sProcess.options.brainmaps_vol.Class   = 'volume';
     sProcess.options.brainmaps_vol.Hidden  = 1;
 end
@@ -78,9 +77,9 @@ function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
     % Get options
     space = sProcess.options.sspace.Value;
     if strcmpi(space, 'surface')
-        brainmapsStr = sProcess.options.brainmaps_srf.Value;
+        brainmaps = sProcess.options.brainmaps_srf.Value;
     elseif strcmpi(space, 'volume')
-        brainmapsStr = sProcess.options.brainmaps_vol.Value;
+        brainmaps = sProcess.options.brainmaps_vol.Value;
         bst_error('Volume brain annotations are not supported yet.', 'BST-Neuromaps');
         return
     end
@@ -89,17 +88,6 @@ function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
     if ~PlugDesc.isLoaded
         bst_plugin('Load', 'neuromaps');
     end
-
-    % Get brain maps Comments
-    brainmaps = str_split(brainmapsStr, 10);
-    tmps = {};
-    for iMap = 1 : length(brainmaps)
-        tmp = strtrim(brainmaps{iMap});
-        if ~isempty(tmp)
-            tmps{end+1} = tmp;
-        end
-    end
-    brainmaps = tmps;
 
     % Get brain maps
     MapFiles = PrepareNeuromap(space, brainmaps);
@@ -224,7 +212,7 @@ function mapComments = GetBrainMapsList(space)
     % Find all Brainstorm source files
     plugDesc = bst_plugin('GetInstalled', 'neuromaps');
     mapFiles = dir(fullfile(plugDesc.Path, plugDesc.SubFolder,  'maps', space,  '**/*_sources.mat'));
-    mapComments = cell(length(mapFiles), 1);
+    mapComments = cell(1, length(mapFiles));
     for iMap = 1 : length(mapFiles)
         % Get comment from file content
         tmp = load(fullfile(mapFiles(iMap).folder, mapFiles(iMap).name), 'Comment');
