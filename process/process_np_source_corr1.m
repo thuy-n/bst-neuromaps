@@ -51,6 +51,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.sspace.Type       = 'radio_linelabel';
     sProcess.options.sspace.Value      = 'surface';
     sProcess.options.sspace.Controller = struct('surface', 'surface', 'volume', 'volume');
+    sProcess.options.sspace.Hidden     = 1;
     % === SURFACE BRAIN MAPS
     sProcess.options.brainmaps_srf.Comment = 'Brain maps from Neuromaps (wiil be a list)';
     sProcess.options.brainmaps_srf.Type    = 'textarea';
@@ -61,6 +62,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.brainmaps_vol.Type    = 'textarea';
     sProcess.options.brainmaps_vol.Value   = strjoin(brainmapListVol, char(10)); % Add checkbox to select all?
     sProcess.options.brainmaps_vol.Class   = 'volume';
+    sProcess.options.brainmaps_vol.Hidden  = 1;
     % === METRIC
     sProcess.options.corrmetric.Comment = {'Pearson corr', 'Spearman corr', 'Comparison metric:'; 'Pearson', 'Spearman', ''};
     sProcess.options.corrmetric.Type    = 'radio_linelabel';
@@ -91,6 +93,8 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
         brainmapsStr = sProcess.options.brainmaps_srf.Value;
     elseif strcmpi(space, 'volume')
         brainmapsStr = sProcess.options.brainmaps_vol.Value;
+        bst_error('Volume brain annotations are not supported yet.', 'BST-Neuromaps');
+        return
     end
     nSpins      = sProcess.options.nspins.Value{1};
     removeZeros = sProcess.options.removezeros.Value;

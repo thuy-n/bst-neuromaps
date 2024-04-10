@@ -90,6 +90,11 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
             return;
         end
     end
+    % Error if volume sources, not supported yet
+    if strcmpi(sResultsMat.HeadModelType, 'volume')
+        bst_error(' Volume brain sources are not supported yet.', 'BST-Neuromaps');
+        return
+    end
     % Verify time definition
     % FilesB must have the same time axis: TimesB
     for iInputB = 1 : length(sInputsB)

@@ -50,6 +50,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.sspace.Type       = 'radio_linelabel';
     sProcess.options.sspace.Value      = 'surface';
     sProcess.options.sspace.Controller = struct('surface', 'surface', 'volume', 'volume');
+    sProcess.options.sspace.Hidden     = 1;
     % TODO: Update to GUI Lists
     % === SURFACE BRAIN MAPS
     sProcess.options.brainmaps_srf.Comment = 'Brain annotations from Neuromaps (will be a list)';
@@ -61,6 +62,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.brainmaps_vol.Type    = 'textarea';
     sProcess.options.brainmaps_vol.Value   = strjoin(brainmapListSrf, char(10)); % Add checkbox to select all?
     sProcess.options.brainmaps_vol.Class   = 'volume';
+    sProcess.options.brainmaps_vol.Hidden  = 1;
 end
 
 
@@ -72,12 +74,15 @@ end
 
 %% ===== RUN =====
 function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
+    OutputFiles = {};
     % Get options
     space = sProcess.options.sspace.Value;
     if strcmpi(space, 'surface')
         brainmapsStr = sProcess.options.brainmaps_srf.Value;
     elseif strcmpi(space, 'volume')
         brainmapsStr = sProcess.options.brainmaps_vol.Value;
+        bst_error('Volume brain annotations are not supported yet.', 'BST-Neuromaps');
+        return
     end
     % Load neuromaps plugin if needed
     PlugDesc = bst_plugin('GetInstalled', 'neuromaps');
