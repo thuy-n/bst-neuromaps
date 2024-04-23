@@ -53,12 +53,12 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.sspace.Controller = struct('surface', 'surface', 'volume', 'volume');
     sProcess.options.sspace.Hidden     = 1;
     % === SURFACE BRAIN MAPS
-    sProcess.options.brainmaps_srf.Comment = [brainmapListSrf, {'Brain annotations from Neuromaps'}];
+    sProcess.options.brainmaps_srf.Comment = [brainmapListSrf, {'Brain annotations from neuromaps'}];
     sProcess.options.brainmaps_srf.Type    = 'list_vertical';
     sProcess.options.brainmaps_srf.Value   = '';
     sProcess.options.brainmaps_srf.Class   = 'surface';
     % === VOLUME BRAIN MAPS
-    sProcess.options.brainmaps_vol.Comment = [brainmapListVol, {'Brain annotations from Neuromaps'}];
+    sProcess.options.brainmaps_vol.Comment = [brainmapListVol, {'Brain annotations from neuromaps'}];
     sProcess.options.brainmaps_vol.Type    = 'list_vertical';
     sProcess.options.brainmaps_vol.Value   = '';
     sProcess.options.brainmaps_vol.Class   = 'volume';
@@ -93,7 +93,7 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
         brainmaps = sProcess.options.brainmaps_srf.Value;
     elseif strcmpi(space, 'volume')
         brainmaps = sProcess.options.brainmaps_vol.Value;
-        bst_error('Volume brain annotations are not supported yet.', 'BST-Neuromaps');
+        bst_error('Volume brain annotations are not supported yet.', 'bst-neuromaps');
         return
     end
     nSpins      = sProcess.options.nspins.Value{1};

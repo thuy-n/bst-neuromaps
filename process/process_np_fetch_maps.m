@@ -31,7 +31,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     brainmapListSrf = GetBrainMapsList('surface');
     brainmapListVol = GetBrainMapsList('volume');
     % Description the process
-    sProcess.Comment     = 'Fetch brain annotations from Neuromaps';
+    sProcess.Comment     = 'Fetch brain annotations from neuromaps';
     sProcess.Category    = 'Custom';
     sProcess.SubGroup    = 'Sources';
     sProcess.Index       = 600;
@@ -53,12 +53,12 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.options.sspace.Controller = struct('surface', 'surface', 'volume', 'volume');
     sProcess.options.sspace.Hidden     = 1;
     % === SURFACE BRAIN MAPS
-    sProcess.options.brainmaps_srf.Comment = [brainmapListSrf, {'Brain annotations from Neuromaps'}];
+    sProcess.options.brainmaps_srf.Comment = [brainmapListSrf, {'Brain annotations from neuromaps'}];
     sProcess.options.brainmaps_srf.Type    = 'list_vertical';
     sProcess.options.brainmaps_srf.Value   = '';
     sProcess.options.brainmaps_srf.Class   = 'surface';
     % === VOLUME BRAIN MAPS
-    sProcess.options.brainmaps_vol.Comment = [brainmapListVol, {'Brain annotations from Neuromaps'}];
+    sProcess.options.brainmaps_vol.Comment = [brainmapListVol, {'Brain annotations from neuromaps'}];
     sProcess.options.brainmaps_vol.Type    = 'list_vertical';
     sProcess.options.brainmaps_vol.Value   = '';
     sProcess.options.brainmaps_vol.Class   = 'volume';
@@ -81,7 +81,7 @@ function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
         brainmaps = sProcess.options.brainmaps_srf.Value;
     elseif strcmpi(space, 'volume')
         brainmaps = sProcess.options.brainmaps_vol.Value;
-        bst_error('Volume brain annotations are not supported yet.', 'BST-Neuromaps');
+        bst_error('Volume brain annotations are not supported yet.', 'bst-neuromaps');
         return
     end
     % Load neuromaps plugin if needed
@@ -132,8 +132,8 @@ function [MapFiles, MapsSurfaceFiles] = PrepareNeuromap(space, mapComments)
         mapInfos(end).FullPath  = mapFullPath;
     end
 
-    % Get Neuromaps Subject
-    SubjectName = 'Neuromaps';
+    % Get neuromaps Subject
+    SubjectName = 'neuromaps';
     [sSubject, iSubject] = bst_get('Subject', SubjectName);
     if isempty(iSubject)
         % Create Subject
@@ -161,7 +161,7 @@ function [MapFiles, MapsSurfaceFiles] = PrepareNeuromap(space, mapComments)
     % See the code `generate_bst_plugin_maps` of bst-neuromaps
     ix = find(strcmp({sSubject.Surface.Comment}, 'cortex_15002V'));
     if length(ix) > 1
-        bst_error('Subject "Neuromaps" has more than one cortical surface named "cortex_15002V"');
+        bst_error('Subject "neuromaps" has more than one cortical surface named "cortex_15002V"');
         return
     end
     if ~isequal(sSubject.iCortex, ix)
@@ -176,7 +176,7 @@ function [MapFiles, MapsSurfaceFiles] = PrepareNeuromap(space, mapComments)
         bst_error('The FsAverage templates (neuromaps plugin and Protocol) are different');
         return
     end
-    % Import brain maps in Neuromaps Subject
+    % Import brain maps in neuromaps Subject
     for iMap = 1 : length(mapInfos)
         % Condition for map Category
         [~, iStudy] = bst_get('StudyWithCondition', bst_fullfile(sSubject.Name, mapInfos(iMap).Category));

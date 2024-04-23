@@ -92,7 +92,7 @@ function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
     end
     % Error if volume sources, not supported yet
     if strcmpi(sResultsMat.HeadModelType, 'volume')
-        bst_error(' Volume brain sources are not supported yet.', 'BST-Neuromaps');
+        bst_error(' Volume brain sources are not supported yet.', 'bst-neuromaps');
         return
     end
     % Verify time definition
