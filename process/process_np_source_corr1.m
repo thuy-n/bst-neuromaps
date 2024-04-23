@@ -1,5 +1,5 @@
 function varargout = process_np_source_corr1( varargin )
-% PROCESS_CORR_MAPS
+% PROCESS_NP_SOURCE_CORR1: : Compute the spatial correlation between one source file and the selected brain annotations
 
 % @=============================================================================
 % This function is part of the Brainstorm software:

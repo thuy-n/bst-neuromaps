@@ -1,5 +1,5 @@
 function varargout = process_np_source_corr2( varargin )
-% PROCESS_CORR_MAPS
+% PROCESS_NP_SOURCE_CORR2: : Compute the spatial correlation between one source file (A) and all the source files (B)
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
