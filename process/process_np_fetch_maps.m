@@ -35,6 +35,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.Category    = 'Custom';
     sProcess.SubGroup    = 'Sources';
     sProcess.Index       = 600;
+    sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/Tutorials/Neuromaps';
     % Definition of the input accepted by this process
     sProcess.InputTypes  = {'import'};
     sProcess.OutputTypes = {'results'};
