@@ -15,6 +15,7 @@ import json
 import shutil
 from neuromaps.datasets import fetch_annotation, fetch_atlas
 from neuromaps import transforms, images
+from decimal import Decimal, ROUND_HALF_UP
 
 # Change working dir to script dir
 script_path = os.path.realpath(sys.argv[0])
@@ -58,7 +59,7 @@ for brain_map, brain_map_subtypes in brain_maps.items():
             space  = brain_map_desc["space"]
             den    = brain_map_desc["density"]
             N      = brain_map_desc["N"]
-            age    = round(brain_map_desc["Age"])
+            age    = int(Decimal(brain_map_desc["Age"]).to_integral_value(rounding=ROUND_HALF_UP))
             # Fetch original map
             original_map = fetch_annotation(source=source, desc=desc, space=space, den=den, data_dir=tmp_dir)
             if space == 'MNI152':
