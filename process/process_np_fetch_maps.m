@@ -140,20 +140,20 @@ function [MapFiles, MapsSurfaceFiles] = PrepareNeuromap(space, mapComments)
         [~, iSubject] = db_add_subject(SubjectName, [], 0, 0);
         % Set anatomy to FsAverage template
         sTemplates = bst_get('AnatomyDefaults');
-        ix = find(~cellfun(@isempty,(regexpi({sTemplates.Name}, 'fsaverage'))));
+        ix = find(strcmpi({sTemplates.Name}, 'ICBM152'));
         if isempty(ix)
-            bst_error('FsAverage template could not be found');
+            bst_error('"ICBM152" template could not be found');
             return
         elseif length(ix) > 1
-            bst_error('There are more than one FsAverage templates');
+            bst_error('There are more than one template named "ICBM152"');
             return
         end
         db_set_template(iSubject, sTemplates(ix), 0);
         [sSubject, iSubject] = bst_get('Subject', SubjectName);
     end
     % Check that it uses FsAverage
-    if isempty(regexpi(sSubject.Anatomy(sSubject.iAnatomy).Comment, 'fsaverage', 'match'))
-        bst_error('Subject is not using FsAverage template anatomy');
+    if isempty(regexpi(sSubject.Anatomy(sSubject.iAnatomy).Comment, 'ICBM152', 'match'))
+        bst_error('Subject is not using "ICBM152" template anatomy');
         return
     end
     % Cortical surface with 15002 vertices (distributed in Brainstorm) MUST be the default one
