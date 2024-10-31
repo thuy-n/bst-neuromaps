@@ -1,5 +1,5 @@
-function varargout = process_np_fetch_maps( varargin )
-% PROCESS_NP_FETCH_MAPS : Fetch the selected brain annotations from the bst-neuromaps plugin
+function varargout = process_nmp_fetch_maps( varargin )
+% PROCESS_NMP_FETCH_MAPS : Fetch the selected brain annotations from the bst-neuromaps plugin
 
 % @=============================================================================
 % This function is part of the Brainstorm software:

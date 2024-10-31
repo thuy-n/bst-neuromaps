@@ -9,7 +9,7 @@
 % Surface annotations are in the fsaverage 15k (both hemispheres) from Brainstorm
 % Volume annotations are in the MNI152 space
 %
-% Surface annotations are fetched with the process 'process_np_fetch_maps'
+% Surface annotations are fetched with the process 'process_nmp_fetch_maps'
 % Volume annotations have to be previously fetched with 'preprocess.py', and
 % are located at ../../tmp/volume.
 %
@@ -41,7 +41,7 @@ dk_fs_labels = [cellfun(@(x) [x ' L'], dk_fs_labels, 'UniformOutput', false), ..
 
 %% Surface files
 % Process: Fetch brain annotations from neuromaps
-sFiles = bst_process('CallProcess', 'process_np_fetch_maps', [], [], ...
+sFiles = bst_process('CallProcess', 'process_nmp_fetch_maps', [], [], ...
     'sspace',        'surface', ...  % Surface
     'brainmaps_srf', {'Acetylcholine: M1_lsn3172176_naganawa2020_N24_Age40', ...
                       'Acetylcholine: VaCht_feobv_aghourian2017_N18_Age67', ...

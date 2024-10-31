@@ -1,5 +1,5 @@
-function varargout = process_np_source_corr1( varargin )
-% PROCESS_NP_SOURCE_CORR1: : Compute the spatial correlation between one source file and the selected brain annotations
+function varargout = process_nmp_source_corr1( varargin )
+% PROCESS_NMP_SOURCE_CORR1: : Compute the spatial correlation between one source file and the selected brain annotations
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
@@ -119,7 +119,7 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     end
 
     % Get Maps and their Surface
-    [MapFiles, MapsSurfaceFiles] = process_np_fetch_maps('PrepareNeuromap', space, brainmaps);
+    [MapFiles, MapsSurfaceFiles] = process_nmp_fetch_maps('PrepareNeuromap', space, brainmaps);
     if isempty(MapFiles) || isempty(MapsSurfaceFiles)
         bst_report('Error', sProcess, [], 'Could not find requested maps.');
         OutputFiles = [];
@@ -127,7 +127,7 @@ function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
     end
 
     % Compute and save spatial correlations
-    OutputFiles = process_np_source_corr2('CorrelationSurfaceMaps', sInputs, MapFiles, MapsSurfaceFiles, removeZeros, nSpins, corrMethod, processTab, 1);
+    OutputFiles = process_nmp_source_corr2('CorrelationSurfaceMaps', sInputs, MapFiles, MapsSurfaceFiles, removeZeros, nSpins, corrMethod, processTab, 1);
 
     % Update whole tree
     panel_protocols('UpdateTree');
