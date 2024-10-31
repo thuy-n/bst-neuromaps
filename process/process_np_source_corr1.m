@@ -38,7 +38,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
     sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/Tutorials/Neuromaps';
     % Definition of the input accepted by this process
     sProcess.InputTypes  = {'results'};
-    sProcess.OutputTypes = {'matrix'};
+    sProcess.OutputTypes = {'pmatrix'};
     sProcess.nInputs     = 1;
     sProcess.nMinFiles   = 1;
     % === DESCRIPTION
