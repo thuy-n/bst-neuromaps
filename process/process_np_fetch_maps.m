@@ -172,8 +172,8 @@ function [MapFiles, MapsSurfaceFiles] = PrepareNeuromap(space, mapComments)
     PluginSurfaceFile = fullfile(bst_get('UserPluginsDir'), 'neuromaps', 'bst-neuromaps-main', 'maps', 'surface',  'tess_cortex_pial_low.mat');
     sMapSrfMat = in_tess_bst(MapSurfaceFile);
     sPluSrfMat = in_tess_bst(PluginSurfaceFile);
-    if ~isequal(sMapSrfMat.Vertices, sPluSrfMat.Vertices)
-        bst_error('The FsAverage templates (neuromaps plugin and Protocol) are different');
+    if ~isequal(size(sMapSrfMat.Vertices), size(sPluSrfMat.Vertices)) || max(abs(sMapSrfMat.Vertices - sPluSrfMat.Vertices), [], 'all') > 0.001  % 1 mm
+        bst_error('The "ICBM152" templates (neuromaps plugin and Protocol) are different');
         return
     end
     % Import brain maps in neuromaps Subject
