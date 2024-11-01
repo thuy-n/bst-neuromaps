@@ -16,7 +16,7 @@
 % Created on 2024
 
 %% Create protocol
-ProtocolName = 'bst-neuromaps_parcellation';
+ProtocolName = 'bst-neuromaps-parcellation';
 % Delete existing protocol
 gui_brainstorm('DeleteProtocol', ProtocolName);
 % Create new protocol
