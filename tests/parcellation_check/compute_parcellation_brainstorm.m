@@ -6,7 +6,7 @@
 %     - 'parcellation_dk_surface_brainstorm.csv'
 %     - 'parcellation_dk_volume_brainstorm.csv'
 %
-% Surface annotations are in the fsaverage 15k (both hemispheres) from Brainstorm
+% Surface annotations are in the Brainstorm MNI152 template 15k (both hemispheres)
 % Volume annotations are in the MNI152 space
 %
 % Surface annotations are fetched with the process 'process_nmp_fetch_maps'
