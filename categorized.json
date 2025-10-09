@@ -37,14 +37,6 @@
           "density": "1mm",
           "N": 29,
           "Age": 22.6
-        },
-        {
-          "source": "beliveau2017",
-          "description": "cimbi36",
-          "space": "fsaverage",
-          "density": "164k",
-          "N": 29,
-          "Age": 22.6
         }
       ],
       "5-HT4": [
@@ -53,14 +45,6 @@
           "description": "sb207145",
           "space": "MNI152",
           "density": "1mm",
-          "N": 59,
-          "Age": 25.9
-        }, 
-        {
-          "source": "beliveau2017",
-          "description": "sb207145",
-          "space": "fsaverage",
-          "density": "164k",
           "N": 59,
           "Age": 25.9
         }
@@ -81,14 +65,6 @@
           "description": "dasb",
           "space": "MNI152",
           "density": "1mm",
-          "N": 100,
-          "Age": 25.1
-        },
-        { 
-          "source": "beliveau2017",
-          "description": "dasb",
-          "space": "fsaverage",
-          "density": "164k",
           "N": 100,
           "Age": 25.1
         },
@@ -281,14 +257,6 @@
           "description": "flumazenil",
           "space": "MNI152",
           "density": "1mm",
-          "N": 16,
-          "Age": 26.6
-        },
-        {
-          "source": "norgaard2021",
-          "description": "flumazenil",
-          "space": "fsaverage",
-          "density": "164k",
           "N": 16,
           "Age": 26.6
         }
