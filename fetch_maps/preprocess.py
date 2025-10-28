@@ -130,7 +130,7 @@ for map_category, map_subtypes in maps.items():
                     gii_maps = transforms.mni152_to_fsaverage(original_map, '164k')
                     os.remove(original_map)
 
-            elif space == 'fslr':
+            elif space == 'fsLR':
                 # Generate surface maps in 'fsaverage' 164k space from fsLR
                 gii_maps = transforms.fslr_to_fsaverage(original_map, '164k')
 
