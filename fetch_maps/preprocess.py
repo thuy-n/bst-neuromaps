@@ -108,7 +108,9 @@ for map_category, map_subtypes in maps.items():
             age    = int(Decimal(map_obj["Age"]).to_integral_value(rounding=ROUND_HALF_UP))
             # Fetch original map, saved in ../tmp/annotations/
             original_map = fetch_annotation(source=source, desc=desc, space=space, den=den, data_dir=tmp_dir)
-
+            # Clear to avoid saving last iteration surfaces
+            gii_maps = None
+            
             # Convert the original map to surface maps: space='fsaverage' with den='164k'
             if space == 'MNI152':
                 # Copy to ../tmp/volume/
