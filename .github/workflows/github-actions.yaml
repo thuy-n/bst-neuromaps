@@ -35,6 +35,10 @@ jobs:
           activate-environment: github-runner
           environment-file: ./bst-neuromaps/conda_env_bst_nmaps.yaml
           auto-activate-base: false
+      - name: Install Connectome Workbench
+        run: |
+             sudo apt-get update
+             sudo apt-get install -y connectome-workbench          
       - name: Fetch and pre-process brain maps (preprocess.py)
         run: |
              cd $GITHUB_WORKSPACE/bst-neuromaps/fetch_maps
