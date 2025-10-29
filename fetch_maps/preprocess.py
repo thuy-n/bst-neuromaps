@@ -131,13 +131,17 @@ for map_category, map_subtypes in maps.items():
                     os.remove(original_map)
 
             elif space == 'fsLR':
-                # Generate surface maps in 'fsaverage' 164k space from fsLR
+                # Generate surface maps in 'fsaverage' 164k space from 'fsLR'
                 gii_maps = transforms.fslr_to_fsaverage(original_map, '164k')
 
             elif space == 'civet':
-                # Generate surface maps in 'fsaverage' 164k space from fsLR
+                # Generate surface maps in 'fsaverage' 164k space from 'civet'
                 gii_maps = transforms.civet_to_fsaverage(original_map, '164k')
 
+            elif space == 'fsaverage' && den != '164k'
+                # Generate surface maps in 'fsaverage' 164k space from 'fsaverage' with different density
+                gii_maps = transforms.fsaverage_to_fsaverage(original_map, '164k')
+            
             # For maps transformed to 'fsaverage' 164k, set values in medial wall to NaN
             surface_maps = []
             # Process each hemisphere (one gii file)
