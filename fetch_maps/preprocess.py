@@ -140,7 +140,7 @@ for map_category, map_subtypes in maps.items():
                 # Generate surface maps in 'fsaverage' 164k space from 'civet'
                 gii_maps = transforms.civet_to_fsaverage(original_map, '164k')
 
-            elif space == 'fsaverage' and den != '164k'
+            elif space == 'fsaverage' and den != '164k':
                 # Generate surface maps in 'fsaverage' 164k space from 'fsaverage' with different density
                 gii_maps = transforms.fsaverage_to_fsaverage(original_map, '164k')
             
